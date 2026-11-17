@@ -7,7 +7,7 @@ import { SimplePool } from 'nostr-tools';
 import { PRODUCTS, MARKETS, marketById } from './lib/catalog.js';
 import { getProduct, searchProducts, UNITS } from './lib/products.js';
 import { validateReportEvent, insertReport, marketPrices, listReports, validateConfirm, recentCountByPubkey } from './lib/reports.js';
-import { parseReport, summarize } from './lib/ai.js';
+import { parseReport, summarize, aiProvider } from './lib/ai.js';
 import { createDeposit, consumeDeposit, invoiceForAddress, recordTip, walletMode, DEPOSIT_SATS } from './lib/lightning.js';
 import { db } from './lib/db.js';
 import { estimatePrice, estimatesEnabled } from './lib/estimate.js';
@@ -48,7 +48,7 @@ async function readJson(req, max = 8192) {
 
 const routes = {
   'GET /api/config': () => ({ products: PRODUCTS, markets: MARKETS, units: UNITS, wallet: walletMode,
-    depositSats: REQUIRE_DEPOSIT ? DEPOSIT_SATS : 0, ai: Boolean(process.env.ANTHROPIC_API_KEY), estimates: estimatesEnabled(), relays: RELAYS }),
+    depositSats: REQUIRE_DEPOSIT ? DEPOSIT_SATS : 0, ai: Boolean(aiProvider()), estimates: estimatesEnabled(), relays: RELAYS }),
 
   'GET /api/prices': async (q) => {
     if (!getProduct(q.product)) throw Object.assign(new Error('unknown_product'), { status: 400 });
@@ -148,4 +148,4 @@ const server = createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => console.log(`Dëgg running on http://localhost:${PORT}  (wallet: ${walletMode}, AI: ${process.env.ANTHROPIC_API_KEY ? 'claude' : 'rules'}, deposits: ${REQUIRE_DEPOSIT ? DEPOSIT_SATS + ' sats' : 'off'})`));
+server.listen(PORT, () => console.log(`Dëgg running on http://localhost:${PORT}  (wallet: ${walletMode}, AI: ${aiProvider() || 'rules'}, deposits: ${REQUIRE_DEPOSIT ? DEPOSIT_SATS + ' sats' : 'off'})`));

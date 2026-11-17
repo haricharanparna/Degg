@@ -94,3 +94,15 @@ test('AI estimate is validated, cached, and off without an API key', async () =>
     assert.equal((await estimatePrice('voiture')).reason, 'not_a_food');
   } finally { globalThis.fetch = realFetch; delete process.env.ANTHROPIC_API_KEY; }
 });
+
+test('Gemini free-tier key works as the AI provider', async () => {
+  const { estimatePrice } = await import('../lib/estimate.js');
+  process.env.GEMINI_API_KEY = 'test';
+  const realFetch = globalThis.fetch; let url = '';
+  globalThis.fetch = async (u) => { url = u; return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: '{"food":"Fataya","unit":"piece","low":100,"high":250,"note":"Beignet farci."}' }] } }] }) }; };
+  try {
+    const e = await estimatePrice('fataya');
+    assert.match(url, /generativelanguage\.googleapis\.com/);
+    assert.deepEqual([e.available, e.food, e.low, e.high], [true, 'Fataya', 100, 250]);
+  } finally { globalThis.fetch = realFetch; delete process.env.GEMINI_API_KEY; }
+});

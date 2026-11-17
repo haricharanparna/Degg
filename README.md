@@ -52,6 +52,7 @@ npm test
 | Variable | Effect |
 |---|---|
 | `ANTHROPIC_API_KEY` | Claude parses French/Wolof reports, writes summaries, and gives labelled price estimates for unreported foods (otherwise rule-based parser, no estimates) |
+| `GEMINI_API_KEY` | **Free alternative**: a Google Gemini key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey) (no card) enables the same AI features. Used only if no Anthropic key is set. Note: Google may use free-tier inputs to improve its models; Dëgg only sends public report text and food names |
 | `NWC_URL` | Operator wallet (needs `make_invoice` + `lookup_invoice`) → **real** Lightning deposits |
 | `RELAYS` | Mirror signed reports and confirmations to Nostr relays |
 | `DEPOSIT_SATS`, `REQUIRE_DEPOSIT` | Anti-spam deposit size / switch |
