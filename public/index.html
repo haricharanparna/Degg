@@ -55,6 +55,10 @@
         <h2 data-i18n="check"></h2>
         <p id="ai-note" class="muted"></p>
         <label><span data-i18n="product"></span><select id="f-product" required></select></label>
+        <div id="new-food" hidden>
+          <label><span data-i18n="foodName"></span><input id="f-name" maxlength="40" autocomplete="off" data-i18n-ph="foodNamePh"></label>
+          <label><span data-i18n="unit"></span><select id="f-unit"></select></label>
+        </div>
         <label><span data-i18n="market"></span><select id="f-market" required></select></label>
         <label><span id="f-price-label" data-i18n="price"></span><input id="f-price" type="number" inputmode="numeric" min="25" max="999999" required></label>
         <label><span data-i18n="lud16"></span><input id="f-lud16" type="email" autocomplete="off" placeholder="nom@getalby.com"></label>

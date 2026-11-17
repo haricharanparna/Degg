@@ -4,7 +4,8 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { SimplePool } from 'nostr-tools';
-import { PRODUCTS, MARKETS, productById, marketById } from './lib/catalog.js';
+import { PRODUCTS, MARKETS, marketById } from './lib/catalog.js';
+import { getProduct, searchProducts, UNITS } from './lib/products.js';
 import { validateReportEvent, insertReport, marketPrices, listReports, validateConfirm, recentCountByPubkey } from './lib/reports.js';
 import { parseReport, summarize } from './lib/ai.js';
 import { createDeposit, consumeDeposit, invoiceForAddress, recordTip, walletMode, DEPOSIT_SATS } from './lib/lightning.js';
@@ -45,17 +46,19 @@ async function readJson(req, max = 8192) {
 }
 
 const routes = {
-  'GET /api/config': () => ({ products: PRODUCTS, markets: MARKETS, wallet: walletMode,
+  'GET /api/config': () => ({ products: PRODUCTS, markets: MARKETS, units: UNITS, wallet: walletMode,
     depositSats: REQUIRE_DEPOSIT ? DEPOSIT_SATS : 0, ai: Boolean(process.env.ANTHROPIC_API_KEY), relays: RELAYS }),
 
   'GET /api/prices': async (q) => {
-    if (!productById[q.product]) throw Object.assign(new Error('unknown_product'), { status: 400 });
+    if (!getProduct(q.product)) throw Object.assign(new Error('unknown_product'), { status: 400 });
     const data = marketPrices(q.product);
     return { ...data, summary: await summarize(q.lang === 'en' ? 'en' : 'fr', data) };
   },
 
+  'GET /api/search': (q) => ({ results: searchProducts(String(q.q || '').slice(0, 60)) }),
+
   'GET /api/reports': (q) => {
-    if (!productById[q.product]) throw Object.assign(new Error('unknown_product'), { status: 400 });
+    if (!getProduct(q.product)) throw Object.assign(new Error('unknown_product'), { status: 400 });
     if (q.market && !marketById[q.market]) throw Object.assign(new Error('unknown_market'), { status: 400 });
     return { reports: listReports(q.product, q.market || null) };
   },

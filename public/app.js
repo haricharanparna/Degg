@@ -27,7 +27,7 @@ const T = {
     exportKey: 'Afficher la clé secrète', importKey: 'Importer une clé', network: 'Le réseau Dëgg',
     st_reports: 'Signalements', st_real: 'dont réels (non démo)', st_contrib: 'Contributeurs', st_markets: 'Marchés couverts', st_conf: 'Confirmations', st_sats: 'Sats envoyés aux contributeurs',
     tipAsk: 'Combien de sats envoyer ?', tipped: 'Merci ! Récompense envoyée ⚡', confirmed: 'Merci, confirmation enregistrée', noLud: 'Ce contributeur n’a pas d’adresse Lightning.',
-    search: 'Chercher', searchLabel: 'Chercher un aliment', searchPh: 'Ex : riz, soble, huile…', notFound: 'Pas encore suivi : ', tracked: 'Produits suivis : ',
+    search: 'Chercher', searchLabel: 'Chercher un aliment', searchPh: 'N’importe quel aliment : riz, mangue, gombo…', noneYet: 'Personne n’a encore signalé le prix de « {q} ».', beFirst: 'Signaler son prix', otherFood: '➕ Autre aliment…', foodName: 'Nom de l’aliment', foodNamePh: 'Ex : Mangue, Gombo, Bissap', unit: 'Vendu par', u_kg: 'kilo', u_L: 'litre', u_piece: 'pièce', u_bunch: 'botte / tas', u_sack: 'sac', needName: 'Indiquez le nom de l’aliment (2 à 40 lettres).',
     needInfo: 'Il manque : ', ago: 'il y a', min: 'min', h: 'h', d: 'j', noSpeech: 'La dictée vocale n’est pas disponible sur ce navigateur.',
     err: 'Erreur : ', keyWarn: 'Ne partagez jamais cette clé :', pasteKey: 'Collez votre clé nsec…' },
   en: { tagline: 'The true market price', navPrices: 'Prices', navReport: 'Report', navWallet: 'Wallet',
@@ -47,7 +47,7 @@ const T = {
     exportKey: 'Show secret key', importKey: 'Import a key', network: 'The Dëgg network',
     st_reports: 'Reports', st_real: 'of which real (not demo)', st_contrib: 'Contributors', st_markets: 'Markets covered', st_conf: 'Confirmations', st_sats: 'Sats sent to contributors',
     tipAsk: 'How many sats to send?', tipped: 'Thank you! Reward sent ⚡', confirmed: 'Thanks, confirmation recorded', noLud: 'This contributor has no Lightning address.',
-    search: 'Search', searchLabel: 'Search for a food', searchPh: 'E.g. rice, onion, oil…', notFound: 'Not tracked yet: ', tracked: 'Tracked foods: ',
+    search: 'Search', searchLabel: 'Search for a food', searchPh: 'Any food: rice, mango, okra…', noneYet: 'Nobody has reported a price for “{q}” yet.', beFirst: 'Report its price', otherFood: '➕ Other food…', foodName: 'Food name', foodNamePh: 'E.g. Mango, Okra, Hibiscus', unit: 'Sold by', u_kg: 'kilo', u_L: 'litre', u_piece: 'piece', u_bunch: 'bunch', u_sack: 'sack', needName: 'Enter the food name (2 to 40 letters).',
     needInfo: 'Missing: ', ago: '', min: 'min ago', h: 'h ago', d: 'd ago', noSpeech: 'Voice input is not available in this browser.',
     err: 'Error: ', keyWarn: 'Never share this key:', pasteKey: 'Paste your nsec key…' },
 };
@@ -99,10 +99,15 @@ async function pay(invoice) {
 
 // ---------- state ----------
 let cfg, product = store.get('product') || 'rice', openMarket = null;
+const extra = new Map(JSON.parse(store.get('extra_products') || '[]'));   // community foods seen on this device
+const prod = id => cfg.products.find(p => p.id === id) || extra.get(id);
+function remember(p) { if (p?.custom) { extra.set(p.id, p); store.set('extra_products', JSON.stringify([...extra].slice(-30))); } }
+const slugify = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
 
 // ---------- prices tab ----------
 function renderChips() {
-  $('chips').innerHTML = cfg.products.map(p => `<button class="chip" role="tab" data-p="${p.id}" aria-selected="${p.id === product}">${esc(lang === 'en' ? p.en : p.wo)}</button>`).join('');
+  const cur = prod(product), list = cur?.custom ? [cur, ...cfg.products] : cfg.products;
+  $('chips').innerHTML = list.map(p => `<button class="chip" role="tab" data-p="${p.id}" aria-selected="${p.id === product}">${esc(lang === 'en' ? p.en : p.wo)}</button>`).join('');
 }
 function spark(history) {
   const pts = history.map((v, i) => [i, v]).filter(([, v]) => v != null);
@@ -112,7 +117,7 @@ function spark(history) {
   $('spark').innerHTML = `<path d="${d}"/>`;
 }
 async function loadPrices() {
-  const p = cfg.products.find(x => x.id === product);
+  const p = prod(product);
   $('markets').innerHTML = '<p class="empty">…</p>';
   try {
     const data = await api(`/api/prices?product=${product}&lang=${lang}`);
@@ -133,7 +138,7 @@ async function loadPrices() {
 }
 async function openDetail(market) {
   openMarket = market;
-  const m = cfg.markets.find(x => x.id === market), p = cfg.products.find(x => x.id === product);
+  const m = cfg.markets.find(x => x.id === market), p = prod(product);
   $('detail-title').textContent = `${pName(p)} — ${m.name}`;
   $('detail').hidden = false;
   const { reports } = await api(`/api/reports?product=${product}&market=${market}`);
@@ -182,7 +187,9 @@ async function tipReport(id, hasLud) {
 
 // ---------- report tab ----------
 function fillSelects() {
-  $('f-product').innerHTML = cfg.products.map(p => `<option value="${p.id}">${esc(pName(p))} (${p.unit})</option>`).join('');
+  $('f-product').innerHTML = cfg.products.map(p => `<option value="${p.id}">${esc(pName(p))} (${p.unit})</option>`).join('') + `<option value="__new">${t('otherFood')}</option>`;
+  $('f-unit').innerHTML = cfg.units.map(u => `<option value="${u}">${t('u_' + u)}</option>`).join('');
+  $('new-food').hidden = true;
   $('f-market').innerHTML = cfg.markets.map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join('');
 }
 async function parseFree() {
@@ -193,6 +200,7 @@ async function parseFree() {
     const r = await api('/api/parse', { text });
     fillSelects();
     if (r.product) $('f-product').value = r.product;
+    else if (r.name) newFood(r.name, r.unit);
     if (r.market) $('f-market').value = r.market;
     $('f-price').value = r.price || '';
     $('f-lud16').value = store.get('lud16') || '';
@@ -203,13 +211,24 @@ async function parseFree() {
   } catch (e) { toast(t('err') + e.message); }
   finally { $('parse').disabled = false; }
 }
+function newFood(name = '', unit = 'kg') {
+  $('f-product').value = '__new'; $('new-food').hidden = false;
+  $('f-name').value = name; $('f-unit').value = cfg.units.includes(unit) ? unit : 'kg';
+}
 let pendingEvent = null;
 async function submitReport(ev) {
   ev.preventDefault();
   const lud16 = $('f-lud16').value.trim();
   store.set('lud16', lud16 || null);
-  const tags = [['t', 'degg-price'], ['product', $('f-product').value], ['market', $('f-market').value],
-    ['price', String(Math.round(Number($('f-price').value))), 'XOF'], ['unit', cfg.products.find(p => p.id === $('f-product').value).unit]];
+  let id = $('f-product').value, unit, name = null;
+  if (id === '__new') {
+    name = $('f-name').value.trim(); unit = $('f-unit').value;
+    if (name.length < 2 || !slugify(name)) { toast(t('needName')); return $('f-name').focus(); }
+    id = `${slugify(name)}.${unit}`;
+  } else unit = prod(id).unit;
+  const tags = [['t', 'degg-price'], ['product', id], ['market', $('f-market').value],
+    ['price', String(Math.round(Number($('f-price').value))), 'XOF'], ['unit', unit]];
+  if (name) tags.push(['name', name]);
   if (lud16) tags.push(['lud16', lud16]);
   try {
     pendingEvent = await sign({ kind: 1, created_at: Math.floor(Date.now() / 1000), tags, content: $('free').value.trim().slice(0, 280) });
@@ -229,6 +248,9 @@ async function publish(payment_hash) {
     $('report-status').textContent = r.flag ? t('flagWarn') + r.flag : t('published');
     $('confirm-form').hidden = true; $('deposit').hidden = true; $('free').value = '';
     product = pendingEvent.tags.find(x => x[0] === 'product')[1];
+    const nm = pendingEvent.tags.find(x => x[0] === 'name')?.[1];
+    if (nm) remember({ id: product, fr: nm, en: nm, wo: nm, unit: pendingEvent.tags.find(x => x[0] === 'unit')[1], custom: true });
+    store.set('product', product);
     loadPrices(); renderChips();
   } catch (e) { toast(t('err') + e.message); }
 }
@@ -264,33 +286,37 @@ async function renderWallet() {
     ['st_conf', s.confirmations], ['st_sats', s.sats_tipped]].map(([k, v]) => `<dt>${t(k)}</dt><dd>${fmt(v)}</dd>`).join('');
 }
 
-// ---------- search: type any food name (French, Wolof, English) ----------
-const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
-function findProducts(q) {
-  const n = norm(q);
-  if (!n) return [];
-  const names = p => [p.id, p.fr, p.en, p.wo, ...(p.syn || [])].map(norm);
-  const exact = cfg.products.filter(p => names(p).some(s => s === n || n.split(/\s+/).includes(s)));
-  return exact.length ? exact : cfg.products.filter(p => names(p).some(s => s.startsWith(n) || s.includes(n) || n.includes(s)));
-}
+// ---------- search: any food, built-in or added by the community ----------
+const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 function selectProduct(id) {
   product = id; store.set('product', id); $('detail').hidden = true;
   renderChips(); loadPrices();
-  document.querySelector(`[data-p="${id}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  document.querySelector(`[data-p="${CSS.escape(id)}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
-function runSearch(auto = false) {
-  const q = $('q').value, hits = findProducts(q), msg = $('search-msg');
-  if (!q.trim()) { msg.hidden = true; return; }
+let searchSeq = 0;
+async function runSearch(auto = false) {
+  const q = $('q').value.trim(), msg = $('search-msg'), seq = ++searchSeq;
+  if (!q) { msg.hidden = true; return; }
+  let hits;
+  try { hits = (await api(`/api/search?q=${encodeURIComponent(q)}`)).results; }
+  catch { hits = cfg.products.filter(p => [p.fr, p.en, p.wo, ...p.syn].some(s => norm(s).includes(norm(q)))); } // offline
+  if (seq !== searchSeq) return; // a newer search is running
+  hits.forEach(remember);
   if (hits.length) {
     msg.hidden = hits.length === 1;
-    msg.textContent = hits.map(p => pName(p)).join(' · ');
+    msg.innerHTML = hits.map(p => `<button type="button" class="chip" data-p="${esc(p.id)}">${esc(pName(p))} · ${t('u_' + p.unit)}</button>`).join(' ');
     if (hits.length === 1 || !auto) selectProduct(hits[0].id);
     const market = cfg.markets.find(m => norm(q).includes(norm(m.name)));
     if (market && !auto) setTimeout(() => openDetail(market.id), 600);
   } else if (!auto) {
     msg.hidden = false;
-    msg.textContent = `${t('notFound')}“${q.trim()}”. ${t('tracked')}${cfg.products.map(p => lang === 'en' ? p.en : p.fr).join(', ')}`;
+    msg.innerHTML = `${esc(t('noneYet').replace('{q}', q))} <button type="button" class="primary small-btn" data-newfood="${esc(q)}">${t('beFirst')}</button>`;
   }
+}
+function reportNewFood(name) {
+  showTab('report'); fillSelects(); newFood(name.charAt(0).toUpperCase() + name.slice(1), 'kg');
+  $('f-lud16').value = store.get('lud16') || ''; $('ai-note').textContent = '';
+  $('confirm-form').hidden = false; $('deposit').hidden = true; $('f-price').focus();
 }
 
 // ---------- wiring ----------
@@ -303,7 +329,8 @@ function showTab(name) {
 document.addEventListener('click', e => {
   const el = e.target.closest('button'); if (!el) return;
   if (el.dataset.tab) showTab(el.dataset.tab);
-  else if (el.dataset.p) { product = el.dataset.p; store.set('product', product); $('detail').hidden = true; renderChips(); loadPrices(); }
+  else if (el.dataset.p) selectProduct(el.dataset.p);
+  else if (el.dataset.newfood) reportNewFood(el.dataset.newfood);
   else if (el.dataset.m) openDetail(el.dataset.m);
   else if (el.dataset.confirm) confirmReport(el.dataset.confirm);
   else if (el.dataset.tip) tipReport(el.dataset.tip, el.dataset.lud === '1');
@@ -312,7 +339,8 @@ $('detail-close').onclick = () => { $('detail').hidden = true; };
 $('lang').onclick = () => { lang = lang === 'fr' ? 'en' : 'fr'; store.set('lang', lang); applyI18n(); renderChips(); fillSelects(); loadPrices(); };
 $('parse').onclick = parseFree;
 $('search').onsubmit = e => { e.preventDefault(); runSearch(); $('q').blur(); };
-$('q').oninput = () => { if ($('q').value.trim().length >= 3) runSearch(true); else $('search-msg').hidden = true; };
+$('q').oninput = () => { clearTimeout(runSearch.t); if ($('q').value.trim().length >= 3) runSearch.t = setTimeout(() => runSearch(true), 300); else $('search-msg').hidden = true; };
+$('f-product').onchange = () => { if ($('f-product').value === '__new') newFood(); else $('new-food').hidden = true; };
 $('confirm-form').onsubmit = submitReport;
 $('deposit-copy').onclick = () => navigator.clipboard?.writeText($('deposit-invoice').textContent).then(() => toast('✓'));
 $('nwc-save').onclick = async () => {
@@ -335,7 +363,7 @@ $('key-import').onclick = () => {
 (async function init() {
   applyI18n(); setupMic();
   cfg = await api('/api/config');
-  if (!cfg.products.some(p => p.id === product)) product = cfg.products[0].id;
+  if (!prod(product)) product = cfg.products[0].id;
   renderChips(); fillSelects(); loadPrices();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 })();

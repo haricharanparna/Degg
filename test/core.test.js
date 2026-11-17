@@ -53,3 +53,24 @@ test('bolt11 decoding extracts amount and payment hash', () => {
   assert.equal(d.sats, 250000);
   assert.equal(d.payment_hash, '0001020304050607080900010203040506070809000102030405060708090102');
 });
+
+test('any food can be reported with a name and unit, and becomes searchable', async () => {
+  const { searchProducts } = await import('../lib/products.js');
+  const ev = report(generateSecretKey(), 250, 'sandaga');
+  const mk = (tags) => finalizeEvent({ kind: 1, created_at: now(), content: '', tags: [['t', 'degg-price'], ['market', 'sandaga'], ['price', '250', 'XOF'], ...tags] }, generateSecretKey());
+  const good = mk([['product', 'mangue.piece'], ['name', 'Mangue'], ['unit', 'piece']]);
+  const v = validateReportEvent(good);
+  assert.equal(v.ok, true);
+  insertReport(v.report, good);
+  assert.equal(searchProducts('mang')[0].id, 'mangue.piece');
+  assert.equal(marketPrices('mangue.piece').markets[0].median, 250);
+  assert.equal(validateReportEvent(mk([['product', 'banane.piece'], ['name', 'Mangue'], ['unit', 'piece']])).error, 'unknown_product');
+  assert.equal(validateReportEvent(mk([['product', 'mangue.box'], ['name', 'Mangue'], ['unit', 'box']])).error, 'bad_unit');
+  assert.equal(validateReportEvent(mk([['product', 'x.kg'], ['name', '<script>'], ['unit', 'kg']])).error, 'bad_food_name');
+  assert.ok(ev);
+});
+
+test('rule parser keeps unknown food names instead of guessing', () => {
+  const r = ruleParse('gombo 1500 le kilo Tilène');
+  assert.deepEqual([r.product, r.name, r.unit, r.market, r.price], [null, 'Gombo', 'kg', 'tilene', 1500]);
+});

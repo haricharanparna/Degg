@@ -17,6 +17,7 @@ A shopper in Dakar who wants 25 kg of rice cannot easily know whether 12 000 XOF
 | You want to… | Dëgg does… |
 |---|---|
 | Know a fair price | Shows the **median price per market**, the range, how fresh the data is, the trend, and a **confidence score** |
+| Find **any** food | Search in French, Wolof or English. 9 staple foods are built in; **any other food** (mangue, gombo, bissap…) can be added by the first person who reports its price, with the unit it's sold by (kilo, litre, piece, bunch, sack), and is then searchable by everyone |
 | Report a price | Type or **speak** it ("soble 600 le kilo à Tilène"). AI extracts product, market and price per unit. **You check it, then sign it** |
 | Trust a report | Every report is a **signed Nostr event** — inspect the raw event, the author key and timestamp. Others can **confirm** it (signed NIP-25 reaction) |
 | Stop fake prices | Each report needs a tiny **Lightning deposit** (10 sats by default). Spam costs money. Big deviations from the median are **flagged**, not silently trusted |
@@ -163,7 +164,8 @@ Confirmations are NIP-25 reactions: `kind 7, content "+", ["e", <report id>]`.
 ## Constraints & honest limitations
 - **Demo data is illustrative, not real market prices.** It is badged DEMO everywhere and counted separately in metrics.
 - Wolof speech recognition in browsers is weak; Wolof is supported in **typed** reports and product names. Voice works best in French.
-- Product units are normalised (XOF per kg / L / piece); haggled prices and quality differences are not modelled yet.
+- Product units are normalised (XOF per kg / L / piece / bunch / sack); haggled prices and quality differences are not modelled yet.
+- Community-added foods are identified by name + unit, so "Mangue" and "Mangues" can become two entries. Names are restricted to letters, digits and simple punctuation (no HTML); a merge/moderation tool is a next-iteration item.
 - A determined attacker with many keys and sats can still post; the deposit makes this costly and the median + flags limit the impact.
 
 ## Metrics to track
