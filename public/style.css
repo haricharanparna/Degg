@@ -22,6 +22,7 @@ h2 { font-size: 1.1rem; margin: 0 0 8px; }
 .gap { gap: 8px; flex-wrap: wrap; justify-content: flex-start; margin-top: 10px; }
 .muted { color: var(--muted); } .small { font-size: .85rem; } .mono { font-family: ui-monospace, monospace; word-break: break-all; font-size: .85rem; }
 .big { font-size: 1.6rem; font-weight: 750; }
+.search { display: flex; gap: 8px; margin-bottom: 10px; } .search input { flex: 1; }
 .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
 .chip { flex: none; border: 1px solid var(--line); background: var(--chip); color: var(--ink); border-radius: 999px; padding: 8px 14px; font-size: .95rem; }
 .chip[aria-selected="true"] { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }

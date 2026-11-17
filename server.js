@@ -45,7 +45,7 @@ async function readJson(req, max = 8192) {
 }
 
 const routes = {
-  'GET /api/config': () => ({ products: PRODUCTS.map(({ syn, ...p }) => p), markets: MARKETS, wallet: walletMode,
+  'GET /api/config': () => ({ products: PRODUCTS, markets: MARKETS, wallet: walletMode,
     depositSats: REQUIRE_DEPOSIT ? DEPOSIT_SATS : 0, ai: Boolean(process.env.ANTHROPIC_API_KEY), relays: RELAYS }),
 
   'GET /api/prices': async (q) => {

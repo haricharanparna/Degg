@@ -19,6 +19,12 @@
   <main>
     <!-- PRICES -->
     <section id="tab-prices" class="tab active" aria-labelledby="nav-prices">
+      <form id="search" class="search" role="search">
+        <label for="q" class="sr" data-i18n="searchLabel"></label>
+        <input id="q" type="search" autocomplete="off" enterkeyhint="search" data-i18n-ph="searchPh">
+        <button class="primary" type="submit" data-i18n="search"></button>
+      </form>
+      <p id="search-msg" class="muted small" role="status" hidden></p>
       <div id="chips" class="chips" role="tablist"></div>
       <article class="card summary">
         <p id="summary" aria-live="polite"></p>

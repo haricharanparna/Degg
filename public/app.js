@@ -27,6 +27,7 @@ const T = {
     exportKey: 'Afficher la clé secrète', importKey: 'Importer une clé', network: 'Le réseau Dëgg',
     st_reports: 'Signalements', st_real: 'dont réels (non démo)', st_contrib: 'Contributeurs', st_markets: 'Marchés couverts', st_conf: 'Confirmations', st_sats: 'Sats envoyés aux contributeurs',
     tipAsk: 'Combien de sats envoyer ?', tipped: 'Merci ! Récompense envoyée ⚡', confirmed: 'Merci, confirmation enregistrée', noLud: 'Ce contributeur n’a pas d’adresse Lightning.',
+    search: 'Chercher', searchLabel: 'Chercher un aliment', searchPh: 'Ex : riz, soble, huile…', notFound: 'Pas encore suivi : ', tracked: 'Produits suivis : ',
     needInfo: 'Il manque : ', ago: 'il y a', min: 'min', h: 'h', d: 'j', noSpeech: 'La dictée vocale n’est pas disponible sur ce navigateur.',
     err: 'Erreur : ', keyWarn: 'Ne partagez jamais cette clé :', pasteKey: 'Collez votre clé nsec…' },
   en: { tagline: 'The true market price', navPrices: 'Prices', navReport: 'Report', navWallet: 'Wallet',
@@ -46,6 +47,7 @@ const T = {
     exportKey: 'Show secret key', importKey: 'Import a key', network: 'The Dëgg network',
     st_reports: 'Reports', st_real: 'of which real (not demo)', st_contrib: 'Contributors', st_markets: 'Markets covered', st_conf: 'Confirmations', st_sats: 'Sats sent to contributors',
     tipAsk: 'How many sats to send?', tipped: 'Thank you! Reward sent ⚡', confirmed: 'Thanks, confirmation recorded', noLud: 'This contributor has no Lightning address.',
+    search: 'Search', searchLabel: 'Search for a food', searchPh: 'E.g. rice, onion, oil…', notFound: 'Not tracked yet: ', tracked: 'Tracked foods: ',
     needInfo: 'Missing: ', ago: '', min: 'min ago', h: 'h ago', d: 'd ago', noSpeech: 'Voice input is not available in this browser.',
     err: 'Error: ', keyWarn: 'Never share this key:', pasteKey: 'Paste your nsec key…' },
 };
@@ -262,6 +264,35 @@ async function renderWallet() {
     ['st_conf', s.confirmations], ['st_sats', s.sats_tipped]].map(([k, v]) => `<dt>${t(k)}</dt><dd>${fmt(v)}</dd>`).join('');
 }
 
+// ---------- search: type any food name (French, Wolof, English) ----------
+const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+function findProducts(q) {
+  const n = norm(q);
+  if (!n) return [];
+  const names = p => [p.id, p.fr, p.en, p.wo, ...(p.syn || [])].map(norm);
+  const exact = cfg.products.filter(p => names(p).some(s => s === n || n.split(/\s+/).includes(s)));
+  return exact.length ? exact : cfg.products.filter(p => names(p).some(s => s.startsWith(n) || s.includes(n) || n.includes(s)));
+}
+function selectProduct(id) {
+  product = id; store.set('product', id); $('detail').hidden = true;
+  renderChips(); loadPrices();
+  document.querySelector(`[data-p="${id}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
+}
+function runSearch(auto = false) {
+  const q = $('q').value, hits = findProducts(q), msg = $('search-msg');
+  if (!q.trim()) { msg.hidden = true; return; }
+  if (hits.length) {
+    msg.hidden = hits.length === 1;
+    msg.textContent = hits.map(p => pName(p)).join(' · ');
+    if (hits.length === 1 || !auto) selectProduct(hits[0].id);
+    const market = cfg.markets.find(m => norm(q).includes(norm(m.name)));
+    if (market && !auto) setTimeout(() => openDetail(market.id), 600);
+  } else if (!auto) {
+    msg.hidden = false;
+    msg.textContent = `${t('notFound')}“${q.trim()}”. ${t('tracked')}${cfg.products.map(p => lang === 'en' ? p.en : p.fr).join(', ')}`;
+  }
+}
+
 // ---------- wiring ----------
 function showTab(name) {
   document.querySelectorAll('.tab').forEach(s => s.classList.toggle('active', s.id === `tab-${name}`));
@@ -280,6 +311,8 @@ document.addEventListener('click', e => {
 $('detail-close').onclick = () => { $('detail').hidden = true; };
 $('lang').onclick = () => { lang = lang === 'fr' ? 'en' : 'fr'; store.set('lang', lang); applyI18n(); renderChips(); fillSelects(); loadPrices(); };
 $('parse').onclick = parseFree;
+$('search').onsubmit = e => { e.preventDefault(); runSearch(); $('q').blur(); };
+$('q').oninput = () => { if ($('q').value.trim().length >= 3) runSearch(true); else $('search-msg').hidden = true; };
 $('confirm-form').onsubmit = submitReport;
 $('deposit-copy').onclick = () => navigator.clipboard?.writeText($('deposit-invoice').textContent).then(() => toast('✓'));
 $('nwc-save').onclick = async () => {
