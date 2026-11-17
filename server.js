@@ -132,7 +132,7 @@ const server = createServer(async (req, res) => {
     const rel = STATIC[url.pathname] || normalize(join('public', url.pathname)).replace(/\\/g, '/');
     if (!rel.startsWith('public/') && !Object.values(STATIC).includes(rel)) return send(res, 404, { error: 'not_found' });
     const file = await readFile(join(import.meta.dirname, rel));
-    res.writeHead(200, { 'content-type': TYPES[extname(rel)] || 'application/octet-stream', 'cache-control': 'public, max-age=300', ...SECURITY_HEADERS });
+    res.writeHead(200, { 'content-type': TYPES[extname(rel)] || 'application/octet-stream', 'cache-control': 'no-cache', ...SECURITY_HEADERS });
     res.end(file);
   } catch (e) {
     if (e.code === 'ENOENT') return send(res, 404, { error: 'not_found' });

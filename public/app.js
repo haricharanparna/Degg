@@ -27,7 +27,7 @@ const T = {
     exportKey: 'Afficher la clé secrète', importKey: 'Importer une clé', network: 'Le réseau Dëgg',
     st_reports: 'Signalements', st_real: 'dont réels (non démo)', st_contrib: 'Contributeurs', st_markets: 'Marchés couverts', st_conf: 'Confirmations', st_sats: 'Sats envoyés aux contributeurs',
     tipAsk: 'Combien de sats envoyer ?', tipped: 'Merci ! Récompense envoyée ⚡', confirmed: 'Merci, confirmation enregistrée', noLud: 'Ce contributeur n’a pas d’adresse Lightning.',
-    search: 'Chercher', searchLabel: 'Chercher un aliment', searchPh: 'N’importe quel aliment : riz, mangue, gombo…', noneYet: 'Personne n’a encore signalé le prix de « {q} ».', beFirst: 'Signaler son prix', otherFood: '➕ Autre aliment…', foodName: 'Nom de l’aliment', foodNamePh: 'Ex : Mangue, Gombo, Bissap', unit: 'Vendu par', u_kg: 'kilo', u_L: 'litre', u_piece: 'pièce', u_bunch: 'botte / tas', u_sack: 'sac', needName: 'Indiquez le nom de l’aliment (2 à 40 lettres).',
+    search: 'Chercher', searchLabel: 'Chercher un aliment', searchPh: 'N’importe quel aliment : riz, mangue, gombo…', noneYet: '{q} : pas encore de prix', beFirst: 'Signaler le prix : {q}', emptyWhy: 'Les prix de Dëgg viennent des gens au marché. Personne n’a encore signalé celui-ci — soyez le premier, ça prend 20 secondes.', emptyBack: 'Voir les autres aliments', otherFood: '➕ Autre aliment…', foodName: 'Nom de l’aliment', foodNamePh: 'Ex : Mangue, Gombo, Bissap', unit: 'Vendu par', u_kg: 'kilo', u_L: 'litre', u_piece: 'pièce', u_bunch: 'botte / tas', u_sack: 'sac', needName: 'Indiquez le nom de l’aliment (2 à 40 lettres).',
     needInfo: 'Il manque : ', ago: 'il y a', min: 'min', h: 'h', d: 'j', noSpeech: 'La dictée vocale n’est pas disponible sur ce navigateur.',
     err: 'Erreur : ', keyWarn: 'Ne partagez jamais cette clé :', pasteKey: 'Collez votre clé nsec…' },
   en: { tagline: 'The true market price', navPrices: 'Prices', navReport: 'Report', navWallet: 'Wallet',
@@ -47,7 +47,7 @@ const T = {
     exportKey: 'Show secret key', importKey: 'Import a key', network: 'The Dëgg network',
     st_reports: 'Reports', st_real: 'of which real (not demo)', st_contrib: 'Contributors', st_markets: 'Markets covered', st_conf: 'Confirmations', st_sats: 'Sats sent to contributors',
     tipAsk: 'How many sats to send?', tipped: 'Thank you! Reward sent ⚡', confirmed: 'Thanks, confirmation recorded', noLud: 'This contributor has no Lightning address.',
-    search: 'Search', searchLabel: 'Search for a food', searchPh: 'Any food: rice, mango, okra…', noneYet: 'Nobody has reported a price for “{q}” yet.', beFirst: 'Report its price', otherFood: '➕ Other food…', foodName: 'Food name', foodNamePh: 'E.g. Mango, Okra, Hibiscus', unit: 'Sold by', u_kg: 'kilo', u_L: 'litre', u_piece: 'piece', u_bunch: 'bunch', u_sack: 'sack', needName: 'Enter the food name (2 to 40 letters).',
+    search: 'Search', searchLabel: 'Search for a food', searchPh: 'Any food: rice, mango, okra…', noneYet: '{q}: no prices yet', beFirst: 'Report the price of {q}', emptyWhy: 'Dëgg prices come from people at the market. Nobody has reported this one yet — be the first, it takes 20 seconds.', emptyBack: 'See other foods', otherFood: '➕ Other food…', foodName: 'Food name', foodNamePh: 'E.g. Mango, Okra, Hibiscus', unit: 'Sold by', u_kg: 'kilo', u_L: 'litre', u_piece: 'piece', u_bunch: 'bunch', u_sack: 'sack', needName: 'Enter the food name (2 to 40 letters).',
     needInfo: 'Missing: ', ago: '', min: 'min ago', h: 'h ago', d: 'd ago', noSpeech: 'Voice input is not available in this browser.',
     err: 'Error: ', keyWarn: 'Never share this key:', pasteKey: 'Paste your nsec key…' },
 };
@@ -288,7 +288,17 @@ async function renderWallet() {
 
 // ---------- search: any food, built-in or added by the community ----------
 const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+function showEmpty(q) {
+  $('tab-prices').classList.toggle('no-results', Boolean(q));
+  $('empty').hidden = !q;
+  if (!q) return;
+  const name = q.charAt(0).toUpperCase() + q.slice(1);
+  $('empty-title').textContent = t('noneYet').replace('{q}', name);
+  $('empty-report').textContent = t('beFirst').replace('{q}', name);
+  $('empty-report').dataset.newfood = q;
+}
 function selectProduct(id) {
+  showEmpty(null);
   product = id; store.set('product', id); $('detail').hidden = true;
   renderChips(); loadPrices();
   document.querySelector(`[data-p="${CSS.escape(id)}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
@@ -296,7 +306,7 @@ function selectProduct(id) {
 let searchSeq = 0;
 async function runSearch(auto = false) {
   const q = $('q').value.trim(), msg = $('search-msg'), seq = ++searchSeq;
-  if (!q) { msg.hidden = true; return; }
+  if (!q) { msg.hidden = true; showEmpty(null); return; }
   let hits;
   try { hits = (await api(`/api/search?q=${encodeURIComponent(q)}`)).results; }
   catch { hits = cfg.products.filter(p => [p.fr, p.en, p.wo, ...p.syn].some(s => norm(s).includes(norm(q)))); } // offline
@@ -309,8 +319,8 @@ async function runSearch(auto = false) {
     const market = cfg.markets.find(m => norm(q).includes(norm(m.name)));
     if (market && !auto) setTimeout(() => openDetail(market.id), 600);
   } else if (!auto) {
-    msg.hidden = false;
-    msg.innerHTML = `${esc(t('noneYet').replace('{q}', q))} <button type="button" class="primary small-btn" data-newfood="${esc(q)}">${t('beFirst')}</button>`;
+    msg.hidden = true;
+    showEmpty(q);
   }
 }
 function reportNewFood(name) {
@@ -335,11 +345,12 @@ document.addEventListener('click', e => {
   else if (el.dataset.confirm) confirmReport(el.dataset.confirm);
   else if (el.dataset.tip) tipReport(el.dataset.tip, el.dataset.lud === '1');
 });
+$('empty-back').onclick = () => { $('q').value = ''; showEmpty(null); $('search-msg').hidden = true; };
 $('detail-close').onclick = () => { $('detail').hidden = true; };
 $('lang').onclick = () => { lang = lang === 'fr' ? 'en' : 'fr'; store.set('lang', lang); applyI18n(); renderChips(); fillSelects(); loadPrices(); };
 $('parse').onclick = parseFree;
 $('search').onsubmit = e => { e.preventDefault(); runSearch(); $('q').blur(); };
-$('q').oninput = () => { clearTimeout(runSearch.t); if ($('q').value.trim().length >= 3) runSearch.t = setTimeout(() => runSearch(true), 300); else $('search-msg').hidden = true; };
+$('q').oninput = () => { clearTimeout(runSearch.t); if ($('q').value.trim().length >= 3) runSearch.t = setTimeout(() => runSearch(true), 300); else { $('search-msg').hidden = true; showEmpty(null); } };
 $('f-product').onchange = () => { if ($('f-product').value === '__new') newFood(); else $('new-food').hidden = true; };
 $('confirm-form').onsubmit = submitReport;
 $('deposit-copy').onclick = () => navigator.clipboard?.writeText($('deposit-invoice').textContent).then(() => toast('✓'));

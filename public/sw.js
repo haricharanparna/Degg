@@ -1,5 +1,5 @@
 // Offline shell for patchy connections: cache static assets, last price responses fall back from cache.
-const CACHE = 'degg-v1';
+const CACHE = 'degg-v2';
 const SHELL = ['/', '/style.css', '/app.js', '/nwc.js', '/vendor/nostr.bundle.js', '/icon.svg', '/manifest.webmanifest'];
 self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))));
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))));

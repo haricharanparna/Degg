@@ -59,3 +59,5 @@ button, .button { font: inherit; border-radius: 10px; padding: 11px 16px; border
 .toast { position: fixed; left: 16px; right: 16px; bottom: 86px; max-width: 528px; margin: 0 auto; background: var(--ink); color: var(--bg); padding: 12px 14px; border-radius: 10px; z-index: 4; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .empty { text-align: center; color: var(--muted); padding: 24px 8px; }
+.empty-state { text-align: center; } .empty-state .ghost { margin-top: 8px; }
+#tab-prices.no-results .chips, #tab-prices.no-results .summary, #tab-prices.no-results #markets, #tab-prices.no-results #detail { display: none; }
