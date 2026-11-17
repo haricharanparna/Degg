@@ -27,7 +27,7 @@ const T = {
     exportKey: 'Afficher la clé secrète', importKey: 'Importer une clé', network: 'Le réseau Dëgg',
     st_reports: 'Signalements', st_real: 'dont réels (non démo)', st_contrib: 'Contributeurs', st_markets: 'Marchés couverts', st_conf: 'Confirmations', st_sats: 'Sats envoyés aux contributeurs',
     tipAsk: 'Combien de sats envoyer ?', tipped: 'Merci ! Récompense envoyée ⚡', confirmed: 'Merci, confirmation enregistrée', noLud: 'Ce contributeur n’a pas d’adresse Lightning.',
-    search: 'Chercher', searchLabel: 'Chercher un aliment', searchPh: 'N’importe quel aliment : riz, mangue, gombo…', noneYet: '{q} : pas encore de prix', beFirst: 'Signaler le prix : {q}', emptyWhy: 'Les prix de Dëgg viennent des gens au marché. Personne n’a encore signalé celui-ci — soyez le premier, ça prend 20 secondes.', emptyBack: 'Voir les autres aliments', otherFood: '➕ Autre aliment…', foodName: 'Nom de l’aliment', foodNamePh: 'Ex : Mangue, Gombo, Bissap', unit: 'Vendu par', u_kg: 'kilo', u_L: 'litre', u_piece: 'pièce', u_bunch: 'botte / tas', u_sack: 'sac', needName: 'Indiquez le nom de l’aliment (2 à 40 lettres).',
+    search: 'Chercher', searchLabel: 'Chercher un aliment', searchPh: 'N’importe quel aliment : riz, mangue, gombo…', noneYet: '{q} : pas encore de prix', beFirst: 'Signaler le prix : {q}', emptyWhy: 'Les prix de Dëgg viennent des gens au marché. Personne n’a encore signalé celui-ci — soyez le premier, ça prend 20 secondes.', emptyBack: 'Voir les autres aliments', estLabel: 'ESTIMATION IA · NON VÉRIFIÉE', estLoading: 'Estimation en cours…', estWhy: 'Ce n’est pas un prix signalé : l’IA l’a estimé. Signalez le vrai prix pour aider tout le monde.', otherFood: '➕ Autre aliment…', foodName: 'Nom de l’aliment', foodNamePh: 'Ex : Mangue, Gombo, Bissap', unit: 'Vendu par', u_kg: 'kilo', u_L: 'litre', u_piece: 'pièce', u_bunch: 'botte / tas', u_sack: 'sac', needName: 'Indiquez le nom de l’aliment (2 à 40 lettres).',
     needInfo: 'Il manque : ', ago: 'il y a', min: 'min', h: 'h', d: 'j', noSpeech: 'La dictée vocale n’est pas disponible sur ce navigateur.',
     err: 'Erreur : ', keyWarn: 'Ne partagez jamais cette clé :', pasteKey: 'Collez votre clé nsec…' },
   en: { tagline: 'The true market price', navPrices: 'Prices', navReport: 'Report', navWallet: 'Wallet',
@@ -47,7 +47,7 @@ const T = {
     exportKey: 'Show secret key', importKey: 'Import a key', network: 'The Dëgg network',
     st_reports: 'Reports', st_real: 'of which real (not demo)', st_contrib: 'Contributors', st_markets: 'Markets covered', st_conf: 'Confirmations', st_sats: 'Sats sent to contributors',
     tipAsk: 'How many sats to send?', tipped: 'Thank you! Reward sent ⚡', confirmed: 'Thanks, confirmation recorded', noLud: 'This contributor has no Lightning address.',
-    search: 'Search', searchLabel: 'Search for a food', searchPh: 'Any food: rice, mango, okra…', noneYet: '{q}: no prices yet', beFirst: 'Report the price of {q}', emptyWhy: 'Dëgg prices come from people at the market. Nobody has reported this one yet — be the first, it takes 20 seconds.', emptyBack: 'See other foods', otherFood: '➕ Other food…', foodName: 'Food name', foodNamePh: 'E.g. Mango, Okra, Hibiscus', unit: 'Sold by', u_kg: 'kilo', u_L: 'litre', u_piece: 'piece', u_bunch: 'bunch', u_sack: 'sack', needName: 'Enter the food name (2 to 40 letters).',
+    search: 'Search', searchLabel: 'Search for a food', searchPh: 'Any food: rice, mango, okra…', noneYet: '{q}: no prices yet', beFirst: 'Report the price of {q}', emptyWhy: 'Dëgg prices come from people at the market. Nobody has reported this one yet — be the first, it takes 20 seconds.', emptyBack: 'See other foods', estLabel: 'AI ESTIMATE · NOT VERIFIED', estLoading: 'Estimating…', estWhy: 'This is not a reported price: AI estimated it. Report the real price to help everyone.', otherFood: '➕ Other food…', foodName: 'Food name', foodNamePh: 'E.g. Mango, Okra, Hibiscus', unit: 'Sold by', u_kg: 'kilo', u_L: 'litre', u_piece: 'piece', u_bunch: 'bunch', u_sack: 'sack', needName: 'Enter the food name (2 to 40 letters).',
     needInfo: 'Missing: ', ago: '', min: 'min ago', h: 'h ago', d: 'd ago', noSpeech: 'Voice input is not available in this browser.',
     err: 'Error: ', keyWarn: 'Never share this key:', pasteKey: 'Paste your nsec key…' },
 };
@@ -296,6 +296,20 @@ function showEmpty(q) {
   $('empty-title').textContent = t('noneYet').replace('{q}', name);
   $('empty-report').textContent = t('beFirst').replace('{q}', name);
   $('empty-report').dataset.newfood = q;
+  $('estimate').hidden = true;
+  if (cfg.estimates) loadEstimate(q);
+}
+async function loadEstimate(q) {
+  $('estimate').hidden = false; $('est-range').textContent = t('estLoading'); $('est-note').textContent = '';
+  try {
+    const e = await api(`/api/estimate?q=${encodeURIComponent(q)}`);
+    if ($('empty-report').dataset.newfood !== q) return; // user moved on
+    if (!e.available) { $('estimate').hidden = true; return; }
+    $('empty-title').textContent = t('noneYet').replace('{q}', e.food);
+    $('est-range').textContent = `≈ ${fmt(e.low)}–${fmt(e.high)} XOF / ${t('u_' + e.unit)}`;
+    $('est-note').textContent = `${e.note} ${t('estWhy')}`;
+    $('empty-report').dataset.newfood = e.food; $('empty-report').dataset.unit = e.unit;
+  } catch { $('estimate').hidden = true; }
 }
 function selectProduct(id) {
   showEmpty(null);
@@ -323,8 +337,8 @@ async function runSearch(auto = false) {
     showEmpty(q);
   }
 }
-function reportNewFood(name) {
-  showTab('report'); fillSelects(); newFood(name.charAt(0).toUpperCase() + name.slice(1), 'kg');
+function reportNewFood(name, unit = 'kg') {
+  showTab('report'); fillSelects(); newFood(name.charAt(0).toUpperCase() + name.slice(1), unit);
   $('f-lud16').value = store.get('lud16') || ''; $('ai-note').textContent = '';
   $('confirm-form').hidden = false; $('deposit').hidden = true; $('f-price').focus();
 }
@@ -340,7 +354,7 @@ document.addEventListener('click', e => {
   const el = e.target.closest('button'); if (!el) return;
   if (el.dataset.tab) showTab(el.dataset.tab);
   else if (el.dataset.p) selectProduct(el.dataset.p);
-  else if (el.dataset.newfood) reportNewFood(el.dataset.newfood);
+  else if (el.dataset.newfood) reportNewFood(el.dataset.newfood, el.dataset.unit);
   else if (el.dataset.m) openDetail(el.dataset.m);
   else if (el.dataset.confirm) confirmReport(el.dataset.confirm);
   else if (el.dataset.tip) tipReport(el.dataset.tip, el.dataset.lud === '1');

@@ -18,6 +18,7 @@ A shopper in Dakar who wants 25 kg of rice cannot easily know whether 12 000 XOF
 |---|---|
 | Know a fair price | Shows the **median price per market**, the range, how fresh the data is, the trend, and a **confidence score** |
 | Find **any** food | Search in French, Wolof or English. 9 staple foods are built in; **any other food** (mangue, gombo, bissap…) can be added by the first person who reports its price, with the unit it's sold by (kilo, litre, piece, bunch, sack), and is then searchable by everyone |
+| Get a price for **anything** | ~55 everyday foods have (DEMO) prices. For anything nobody has reported, Claude gives a rough Dakar price range in a dashed box labelled **"AI estimate · not verified"** — never stored as a report, never used in medians or confidence, cached 7 days. Needs `ANTHROPIC_API_KEY` |
 | Report a price | Type or **speak** it ("soble 600 le kilo à Tilène"). AI extracts product, market and price per unit. **You check it, then sign it** |
 | Trust a report | Every report is a **signed Nostr event** — inspect the raw event, the author key and timestamp. Others can **confirm** it (signed NIP-25 reaction) |
 | Stop fake prices | Each report needs a tiny **Lightning deposit** (10 sats by default). Spam costs money. Big deviations from the median are **flagged**, not silently trusted |
@@ -50,7 +51,7 @@ npm test
 ### Going live (all optional) — copy `.env.example` to `.env`
 | Variable | Effect |
 |---|---|
-| `ANTHROPIC_API_KEY` | Claude parses French/Wolof reports and writes summaries (otherwise a rule-based parser) |
+| `ANTHROPIC_API_KEY` | Claude parses French/Wolof reports, writes summaries, and gives labelled price estimates for unreported foods (otherwise rule-based parser, no estimates) |
 | `NWC_URL` | Operator wallet (needs `make_invoice` + `lookup_invoice`) → **real** Lightning deposits |
 | `RELAYS` | Mirror signed reports and confirmations to Nostr relays |
 | `DEPOSIT_SATS`, `REQUIRE_DEPOSIT` | Anti-spam deposit size / switch |

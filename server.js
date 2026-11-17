@@ -10,6 +10,7 @@ import { validateReportEvent, insertReport, marketPrices, listReports, validateC
 import { parseReport, summarize } from './lib/ai.js';
 import { createDeposit, consumeDeposit, invoiceForAddress, recordTip, walletMode, DEPOSIT_SATS } from './lib/lightning.js';
 import { db } from './lib/db.js';
+import { estimatePrice, estimatesEnabled } from './lib/estimate.js';
 
 const PORT = Number(process.env.PORT || 8080);
 const REQUIRE_DEPOSIT = process.env.REQUIRE_DEPOSIT !== '0';
@@ -47,7 +48,7 @@ async function readJson(req, max = 8192) {
 
 const routes = {
   'GET /api/config': () => ({ products: PRODUCTS, markets: MARKETS, units: UNITS, wallet: walletMode,
-    depositSats: REQUIRE_DEPOSIT ? DEPOSIT_SATS : 0, ai: Boolean(process.env.ANTHROPIC_API_KEY), relays: RELAYS }),
+    depositSats: REQUIRE_DEPOSIT ? DEPOSIT_SATS : 0, ai: Boolean(process.env.ANTHROPIC_API_KEY), estimates: estimatesEnabled(), relays: RELAYS }),
 
   'GET /api/prices': async (q) => {
     if (!getProduct(q.product)) throw Object.assign(new Error('unknown_product'), { status: 400 });
@@ -56,6 +57,11 @@ const routes = {
   },
 
   'GET /api/search': (q) => ({ results: searchProducts(String(q.q || '').slice(0, 60)) }),
+
+  'GET /api/estimate': async (q, body, ctx) => {
+    if (limited(`est:${ctx.bucket}`, 20, 60_000)) throw Object.assign(new Error('slow_down'), { status: 429 });
+    return estimatePrice(String(q.q || ''));
+  },
 
   'GET /api/reports': (q) => {
     if (!getProduct(q.product)) throw Object.assign(new Error('unknown_product'), { status: 400 });

@@ -61,3 +61,5 @@ button, .button { font: inherit; border-radius: 10px; padding: 11px 16px; border
 .empty { text-align: center; color: var(--muted); padding: 24px 8px; }
 .empty-state { text-align: center; } .empty-state .ghost { margin-top: 8px; }
 #tab-prices.no-results .chips, #tab-prices.no-results .summary, #tab-prices.no-results #markets, #tab-prices.no-results #detail { display: none; }
+.estimate { border: 2px dashed var(--accent); border-radius: 12px; padding: 10px; margin: 8px 0 12px; }
+.estimate .big { margin: 6px 0 2px; } .badge.est { background: transparent; color: var(--accent); border: 1px solid var(--accent); }

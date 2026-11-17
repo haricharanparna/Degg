@@ -74,3 +74,23 @@ test('rule parser keeps unknown food names instead of guessing', () => {
   const r = ruleParse('gombo 1500 le kilo Tilène');
   assert.deepEqual([r.product, r.name, r.unit, r.market, r.price], [null, 'Gombo', 'kg', 'tilene', 1500]);
 });
+
+test('AI estimate is validated, cached, and off without an API key', async () => {
+  const { estimatePrice } = await import('../lib/estimate.js');
+  delete process.env.ANTHROPIC_API_KEY;
+  assert.equal((await estimatePrice('pizza')).reason, 'not_configured');
+  process.env.ANTHROPIC_API_KEY = 'test';
+  const realFetch = globalThis.fetch; let calls = 0;
+  const reply = text => { calls++; return { ok: true, json: async () => ({ content: [{ text }] }) }; };
+  globalThis.fetch = async () => reply('{"food":"Pizza","unit":"piece","low":2500,"high":5000,"note":"Selon la taille."}');
+  try {
+    const e = await estimatePrice('pizza');
+    assert.deepEqual([e.available, e.food, e.unit, e.low, e.high], [true, 'Pizza', 'piece', 2500, 5000]);
+    await estimatePrice('Pizza'); // cached, no second call
+    assert.equal(calls, 1);
+    globalThis.fetch = async () => reply('{"food":"Truc","unit":"box","low":9,"high":1}');
+    assert.equal((await estimatePrice('truc')).available, false);
+    globalThis.fetch = async () => reply('{"food":null}');
+    assert.equal((await estimatePrice('voiture')).reason, 'not_a_food');
+  } finally { globalThis.fetch = realFetch; delete process.env.ANTHROPIC_API_KEY; }
+});
