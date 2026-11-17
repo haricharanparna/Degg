@@ -1,0 +1,15 @@
+services:
+  degg:
+    build: .
+    ports: ["8080:8080"]
+    env_file: { path: .env, required: false }
+    environment:
+      RELAYS: ${RELAYS:-ws://relay:8080}
+    volumes: [degg-data:/data]
+    depends_on: [relay]
+  # Local Nostr relay so signed reports are mirrored without touching public infrastructure.
+  relay:
+    image: scsibug/nostr-rs-relay:0.9.0
+    ports: ["7777:8080"]
+volumes:
+  degg-data:

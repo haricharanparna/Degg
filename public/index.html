@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f5132">
+  <meta name="description" content="Dëgg — prix du marché signalés par la communauté, signés sur Nostr, récompensés en Bitcoin Lightning.">
+  <title>Dëgg</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="logo" aria-hidden="true">D</span><div><strong>Dëgg</strong><small data-i18n="tagline"></small></div></div>
+    <button id="lang" class="ghost" aria-label="Language">EN</button>
+  </header>
+
+  <main>
+    <!-- PRICES -->
+    <section id="tab-prices" class="tab active" aria-labelledby="nav-prices">
+      <div id="chips" class="chips" role="tablist"></div>
+      <article class="card summary">
+        <p id="summary" aria-live="polite"></p>
+        <div class="row"><span class="big" id="overall"></span><svg id="spark" viewBox="0 0 140 36" aria-hidden="true"></svg></div>
+        <small class="muted" data-i18n="spark"></small>
+      </article>
+      <div id="markets"></div>
+      <section id="detail" class="card" hidden>
+        <div class="row"><h2 id="detail-title"></h2><button class="ghost" id="detail-close" data-i18n="close"></button></div>
+        <ul id="reports" class="reports"></ul>
+      </section>
+    </section>
+
+    <!-- REPORT -->
+    <section id="tab-report" class="tab" aria-labelledby="nav-report">
+      <article class="card">
+        <h2 data-i18n="reportTitle"></h2>
+        <p class="muted" data-i18n="reportHelp"></p>
+        <label for="free" class="sr" data-i18n="reportTitle"></label>
+        <textarea id="free" rows="3" maxlength="500" data-i18n-ph="reportPh"></textarea>
+        <div class="row gap">
+          <button id="mic" class="secondary" type="button" data-i18n="speak"></button>
+          <button id="parse" class="primary" type="button" data-i18n="analyse"></button>
+        </div>
+      </article>
+
+      <form id="confirm-form" class="card" hidden>
+        <h2 data-i18n="check"></h2>
+        <p id="ai-note" class="muted"></p>
+        <label><span data-i18n="product"></span><select id="f-product" required></select></label>
+        <label><span data-i18n="market"></span><select id="f-market" required></select></label>
+        <label><span id="f-price-label" data-i18n="price"></span><input id="f-price" type="number" inputmode="numeric" min="25" max="999999" required></label>
+        <label><span data-i18n="lud16"></span><input id="f-lud16" type="email" autocomplete="off" placeholder="nom@getalby.com"></label>
+        <p class="muted small" data-i18n="publicNote"></p>
+        <button class="primary wide" type="submit" data-i18n="signPublish"></button>
+      </form>
+
+      <article id="deposit" class="card" hidden>
+        <h2 data-i18n="depositTitle"></h2>
+        <p data-i18n="depositHelp"></p>
+        <code id="deposit-invoice" class="invoice"></code>
+        <div class="row gap">
+          <a id="deposit-open" class="button secondary" data-i18n="openWallet"></a>
+          <button id="deposit-copy" class="secondary" type="button" data-i18n="copy"></button>
+          <button id="deposit-done" class="primary" type="button" data-i18n="paid"></button>
+        </div>
+      </article>
+      <p id="report-status" class="status" role="status"></p>
+    </section>
+
+    <!-- WALLET -->
+    <section id="tab-wallet" class="tab" aria-labelledby="nav-wallet">
+      <article class="card">
+        <h2 data-i18n="wallet"></h2>
+        <p id="wallet-state"></p>
+        <p class="big" id="balance"></p>
+        <label><span data-i18n="nwcLabel"></span>
+          <input id="nwc" type="password" autocomplete="off" placeholder="nostr+walletconnect://…"></label>
+        <p class="muted small" data-i18n="nwcHelp"></p>
+        <div class="row gap">
+          <button id="nwc-save" class="primary" type="button" data-i18n="connect"></button>
+          <button id="nwc-forget" class="secondary" type="button" data-i18n="disconnect"></button>
+        </div>
+      </article>
+      <article class="card">
+        <h2 data-i18n="identity"></h2>
+        <p class="mono" id="npub"></p>
+        <p class="muted small" data-i18n="identityHelp"></p>
+        <div class="row gap">
+          <button id="key-export" class="secondary" type="button" data-i18n="exportKey"></button>
+          <button id="key-import" class="secondary" type="button" data-i18n="importKey"></button>
+        </div>
+      </article>
+      <article class="card">
+        <h2 data-i18n="network"></h2>
+        <dl id="stats" class="stats"></dl>
+      </article>
+    </section>
+  </main>
+
+  <nav class="bottom" aria-label="Navigation">
+    <button id="nav-prices" data-tab="prices" class="active"><span aria-hidden="true">▤</span><span data-i18n="navPrices"></span></button>
+    <button id="nav-report" data-tab="report"><span aria-hidden="true">＋</span><span data-i18n="navReport"></span></button>
+    <button id="nav-wallet" data-tab="wallet"><span aria-hidden="true">⚡</span><span data-i18n="navWallet"></span></button>
+  </nav>
+  <div id="toast" class="toast" role="alert" hidden></div>
+
+  <script src="/vendor/nostr.bundle.js"></script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

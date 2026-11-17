@@ -1,0 +1,20 @@
+{
+  "name": "degg",
+  "version": "1.0.0",
+  "description": "Dëgg — community price truth layer for African markets (Bitcoin + Nostr + AI)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env lib/seed.js && node --env-file-if-exists=.env server.js",
+    "seed": "node lib/seed.js",
+    "test": "node --test test/*.test.js",
+    "check:wallet": "node scripts/nwc-check.js ../wallets"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@scure/base": "^1.2.6",
+    "nostr-tools": "^2.26.1"
+  }
+}
