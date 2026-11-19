@@ -56,6 +56,12 @@ const routes = {
     return { ...data, summary: await summarize(q.lang === 'en' ? 'en' : 'fr', data) };
   },
 
+  'GET /api/overview': () => ({ items: PRODUCTS.map(p => {
+    const d = marketPrices(p.id), h = d.history.filter(v => v != null);
+    return { product: p.id, unit: p.unit, overall: d.overall, history: d.history,
+      change: h.length >= 2 ? Math.round(((h.at(-1) - h[0]) / h[0]) * 100) : null };
+  }).filter(i => i.overall) }),
+
   'GET /api/search': (q) => ({ results: searchProducts(String(q.q || '').slice(0, 60)) }),
 
   'GET /api/estimate': async (q, body, ctx) => {

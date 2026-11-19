@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0f5132"/><text x="32" y="45" font-family="system-ui,sans-serif" font-size="38" font-weight="800" text-anchor="middle" fill="#fff">D</text><circle cx="49" cy="15" r="6" fill="#e0a100"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14a679"/>
+      <stop offset="1" stop-color="#083527"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="14" fill="url(#g)"/>
+  <!-- "D" for Dëgg, closed around a check mark: the verified price -->
+  <path d="M15 12.5h8.5a11.5 11.5 0 0 1 0 23H15z" fill="none" stroke="#fff" stroke-width="3.4" stroke-linejoin="round"/>
+  <path d="M19.6 24.4l3.4 3.4 6.2-7.2" fill="none" stroke="#f2c14e" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

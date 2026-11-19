@@ -12,7 +12,7 @@ const icon = (name, cls = '') => `<svg class="icon ${cls}" aria-hidden="true"><u
 // ---------- i18n: French (default), English, Wolof (beta — falls back to French) ----------
 const T = {
   fr: { tagline: 'Le vrai prix du marché', language: 'Langue', navPrices: 'Prix', navReport: 'Signaler', navWallet: 'Portefeuille',
-    spark: '14 derniers jours', medianOf: 'Prix médian · {p}', reportsN: '{n} signalements', byMarket: 'Par marché', cheapestFirst: 'Le moins cher d’abord',
+    spark: '14 derniers jours', today: 'Marché du jour', vs14: 'sur 14 jours', allFoods: 'Tous les aliments', medianOf: 'Prix médian · {p}', reportsN: '{n} signalements', byMarket: 'Par marché', cheapestFirst: 'Le moins cher d’abord',
     reports: 'signalements', report1: '1 signalement', updated: 'mis à jour', confidence: 'Confiance', demo: 'DÉMO', flagged: 'ÉCART',
     confirm: 'Confirmer', tip: 'Récompenser', signed: 'Voir l’événement Nostr signé', noData: 'Aucun prix signalé cette semaine. Soyez le premier !',
     reportTitle: 'Signaler un prix', reportHelp: 'Écrivez ou dites ce que vous avez vu, en français ou en wolof. Ex : « sac de riz 50 kg à 22 500 à Sandaga »',
@@ -37,7 +37,7 @@ const T = {
     needInfo: 'Il manque : ', ago: 'il y a', min: 'min', h: 'h', d: 'j', noSpeech: 'La dictée vocale n’est pas disponible sur ce navigateur.',
     err: 'Erreur : ', keyWarn: 'Ne partagez jamais cette clé :', pasteKey: 'Collez votre clé nsec…', loading: 'Chargement…', viaAI: 'IA', viaRules: 'règles' },
   en: { tagline: 'The true market price', language: 'Language', navPrices: 'Prices', navReport: 'Report', navWallet: 'Wallet',
-    spark: 'Last 14 days', medianOf: 'Median price · {p}', reportsN: '{n} reports', byMarket: 'By market', cheapestFirst: 'Cheapest first',
+    spark: 'Last 14 days', today: 'Today’s market', vs14: '14-day change', allFoods: 'All foods', medianOf: 'Median price · {p}', reportsN: '{n} reports', byMarket: 'By market', cheapestFirst: 'Cheapest first',
     reports: 'reports', report1: '1 report', updated: 'updated', confidence: 'Confidence', demo: 'DEMO', flagged: 'OUTLIER',
     confirm: 'Confirm', tip: 'Reward', signed: 'View signed Nostr event', noData: 'No prices reported this week. Be the first!',
     reportTitle: 'Report a price', reportHelp: 'Type or say what you saw, in French, Wolof or English. E.g. "50 kg rice sack 22,500 at Sandaga"',
@@ -63,7 +63,7 @@ const T = {
     err: 'Error: ', keyWarn: 'Never share this key:', pasteKey: 'Paste your nsec key…', loading: 'Loading…', viaAI: 'AI', viaRules: 'rules' },
   // Wolof (beta): core navigation and actions. Anything missing falls back to French.
   wo: { tagline: 'Njëg gu dëgg ci marse bi', language: 'Làkk', navPrices: 'Njëg', navReport: 'Yégle', navWallet: 'Kalpe',
-    byMarket: 'Ci marse yi', search: 'Seet', searchLabel: 'Seet lekk', searchPh: 'Ceeb, mango, yàpp…',
+    byMarket: 'Ci marse yi', today: 'Marse bu tey', allFoods: 'Lekk yépp', search: 'Seet', searchLabel: 'Seet lekk', searchPh: 'Ceeb, mango, yàpp…',
     reportTitle: 'Yégle ab njëg', speak: 'Wax', listening: 'Maa ngi déglu…', analyse: 'Xool', product: 'Lekk', market: 'Marse', price: 'Njëg',
     signPublish: 'Xaatim te yégle', confirm: 'Dëggal', tip: 'Jox', balance: 'Xaalis bi', connect: 'Lëkkale', disconnect: 'Dagg',
     beFirst: 'Yégle njëg gu dëgg gi', emptyBack: 'Dellu ci njëg yi', copy: 'Duppi', paid: 'Fey naa', u_kg: 'kilo', u_piece: 'benn', u_sack: 'saaku' },
@@ -126,6 +126,28 @@ const prod = id => cfg.products.find(p => p.id === id) || extra.get(id);
 function remember(p) { if (p?.custom) { extra.set(p.id, p); store.set('extra_products', JSON.stringify([...extra].slice(-30))); } }
 const slugify = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
 
+// ---------- watchlist: key staples at a glance ----------
+function miniSpark(history, cls) {
+  const v = history.map((x, i) => [i, x]).filter(([, x]) => x != null);
+  if (v.length < 2) return '';
+  const ys = v.map(p => p[1]), lo = Math.min(...ys), span = Math.max(...ys) - lo || 1;
+  const d = v.map(([i, y], k) => `${k ? 'L' : 'M'}${(i / 13 * 52 + 1).toFixed(1)},${(20 - (y - lo) / span * 18).toFixed(1)}`).join(' ');
+  return `<svg class="w-spark ${cls}" viewBox="0 0 54 22" preserveAspectRatio="none" aria-hidden="true"><path d="${d}"/></svg>`;
+}
+let overview = null;
+async function loadWatch() {
+  if (!overview) $('watch').innerHTML = '<div class="w-card skel"></div>'.repeat(4);
+  try { overview = (await api('/api/overview')).items; } catch { if (!overview) { $('watch-wrap').hidden = true; return; } }
+  $('watch').innerHTML = overview.map(i => {
+    const p = prod(i.product), cls = i.change > 0 ? 'up' : i.change < 0 ? 'down' : 'flat';
+    return `<button class="w-card" data-p="${i.product}" aria-pressed="${i.product === product}">
+      <div class="w-name">${esc(pShort(p))}</div>
+      <div class="w-price">${fmt(i.overall)}<small>/${esc(unitName(p.unit))}</small></div>
+      <div class="w-foot">${trendPill(i.change)}${miniSpark(i.history, cls)}</div>
+    </button>`;
+  }).join('');
+}
+
 // ---------- prices tab ----------
 function renderChips() {
   const cur = prod(product), list = cur?.custom ? [cur, ...cfg.products] : cfg.products;
@@ -143,7 +165,7 @@ function spark(history) {
 }
 async function loadPrices() {
   const p = prod(product);
-  $('markets').innerHTML = `<div class="loading">${t('loading')}</div>`;
+  $('markets').innerHTML = '<div class="row-skel"></div>'.repeat(3);
   $('hero-label').textContent = t('medianOf', { p: pShort(p) });
   try {
     const data = await api(`/api/prices?product=${encodeURIComponent(product)}&lang=${apiLang()}`);
@@ -292,7 +314,7 @@ async function publish(payment_hash) {
     const nm = pendingEvent.tags.find(x => x[0] === 'name')?.[1];
     if (nm) remember({ id: product, fr: nm, en: nm, wo: nm, unit: pendingEvent.tags.find(x => x[0] === 'unit')[1], custom: true });
     store.set('product', product);
-    loadPrices(); renderChips();
+    loadPrices(); renderChips(); overview = null; loadWatch();
   } catch (e) { toast(t('err') + e.message); }
 }
 function setupMic() {
@@ -361,6 +383,7 @@ function selectProduct(id) {
   showEmpty(null);
   product = id; store.set('product', id); $('detail').hidden = true;
   renderChips(); loadPrices();
+  document.querySelectorAll('.w-card').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.p === id)));
   document.querySelector(`.chip[data-p="${CSS.escape(id)}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
 let searchSeq = 0;
@@ -408,7 +431,7 @@ document.addEventListener('click', e => {
 $('empty-back').onclick = () => { $('q').value = ''; showEmpty(null); $('search-msg').hidden = true; };
 $('detail-close').onclick = () => { $('detail').hidden = true; };
 $('lang').onchange = () => {
-  lang = $('lang').value; store.set('lang', lang); applyI18n(); renderChips(); fillSelects(); loadPrices();
+  lang = $('lang').value; store.set('lang', lang); applyI18n(); renderChips(); fillSelects(); loadPrices(); loadWatch();
   if (!$('empty').hidden) showEmpty($('empty-report').dataset.newfood);
   if ($('tab-wallet').classList.contains('active')) renderWallet();
 };
@@ -440,6 +463,6 @@ $('key-import').onclick = () => {
   applyI18n(); setupMic();
   cfg = await api('/api/config');
   if (!prod(product)) product = cfg.products[0].id;
-  renderChips(); fillSelects(); loadPrices();
+  renderChips(); fillSelects(); loadPrices(); loadWatch();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 })();
