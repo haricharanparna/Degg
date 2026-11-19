@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0f5132">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b3d2e">
   <meta name="description" content="Dëgg — prix du marché signalés par la communauté, signés sur Nostr, récompensés en Bitcoin Lightning.">
   <title>Dëgg</title>
   <link rel="manifest" href="/manifest.webmanifest">
@@ -11,9 +11,51 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <!-- Icon sprite (stroke icons, 24px grid) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 15 4-5 4 3 5-6"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></symbol>
+      <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M20 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h15v13H5a2 2 0 0 1-2-2V5"/><circle cx="16" cy="13.5" r="1.5"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+      <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+      <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
+      <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+      <symbol id="i-up" viewBox="0 0 24 24"><path d="m3 17 6-6 4 4 8-8M15 7h6v6"/></symbol>
+      <symbol id="i-down" viewBox="0 0 24 24"><path d="m3 7 6 6 4-4 8 8M15 17h6v-6"/></symbol>
+      <symbol id="i-flat" viewBox="0 0 24 24"><path d="M4 12h16"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+      <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+      <symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0zM5 13v8h14v-8"/><path d="M10 21v-5h4v5"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M14 9l2 2"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
+      <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 3h7v7M21 3l-9 9M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17v.5"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/></symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+      <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+    </defs>
+  </svg>
+
   <header class="top">
-    <div class="brand"><span class="logo" aria-hidden="true">D</span><div><strong>Dëgg</strong><small data-i18n="tagline"></small></div></div>
-    <button id="lang" class="ghost" aria-label="Language">EN</button>
+    <div class="brand">
+      <span class="logo" aria-hidden="true">D</span>
+      <div><strong>Dëgg</strong><small data-i18n="tagline"></small></div>
+    </div>
+    <label class="lang-pick">
+      <svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg>
+      <span class="sr" data-i18n="language"></span>
+      <select id="lang">
+        <option value="fr">Français</option>
+        <option value="en">English</option>
+        <option value="wo">Wolof (bêta)</option>
+      </select>
+    </label>
   </header>
 
   <main>
@@ -21,109 +63,138 @@
     <section id="tab-prices" class="tab active" aria-labelledby="nav-prices">
       <form id="search" class="search" role="search">
         <label for="q" class="sr" data-i18n="searchLabel"></label>
-        <input id="q" type="search" autocomplete="off" enterkeyhint="search" data-i18n-ph="searchPh">
-        <button class="primary" type="submit" data-i18n="search"></button>
-      </form>
-      <p id="search-msg" class="muted small" role="status" hidden></p>
-      <article id="empty" class="card empty-state" hidden>
-        <h2 id="empty-title"></h2>
-        <div id="estimate" class="estimate" hidden>
-          <span class="badge est" data-i18n="estLabel"></span>
-          <p class="big" id="est-range"></p>
-          <p class="small muted" id="est-note"></p>
+        <div class="field-icon">
+          <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+          <input id="q" type="search" autocomplete="off" enterkeyhint="search" data-i18n-ph="searchPh">
         </div>
-        <p class="muted" data-i18n="emptyWhy"></p>
-        <button id="empty-report" class="primary wide" type="button"></button>
-        <button id="empty-back" class="ghost wide" type="button" data-i18n="emptyBack"></button>
-      </article>
+        <button class="btn primary" type="submit" data-i18n="search"></button>
+      </form>
+      <div id="search-msg" class="suggest" role="status" hidden></div>
+
+      <!-- Food nobody has reported: estimate first -->
+      <section id="empty" class="empty-state" hidden>
+        <div class="empty-head">
+          <h1 id="empty-title"></h1>
+          <p class="pill neutral"><svg class="icon" aria-hidden="true"><use href="#i-info"/></svg><span data-i18n="noSpecific"></span></p>
+        </div>
+        <article id="estimate" class="card estimate" hidden>
+          <div class="est-label"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg><span data-i18n="estLabel"></span></div>
+          <p class="est-range" id="est-range"></p>
+          <p class="est-unit" id="est-unit"></p>
+          <p class="est-note" id="est-note"></p>
+          <p class="est-why"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg><span data-i18n="estWhy"></span></p>
+        </article>
+        <article id="no-estimate" class="card muted-card" hidden>
+          <p data-i18n="emptyWhy"></p>
+        </article>
+        <button id="empty-report" class="btn primary wide" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg><span id="empty-report-label"></span></button>
+        <button id="empty-back" class="btn ghost wide" type="button"><svg class="icon" aria-hidden="true"><use href="#i-back"/></svg><span data-i18n="emptyBack"></span></button>
+      </section>
+
       <div id="chips" class="chips" role="tablist"></div>
-      <article class="card summary">
-        <p id="summary" aria-live="polite"></p>
-        <div class="row"><span class="big" id="overall"></span><svg id="spark" viewBox="0 0 140 36" aria-hidden="true"></svg></div>
-        <small class="muted" data-i18n="spark"></small>
+
+      <article class="hero">
+        <div class="hero-top">
+          <span class="hero-label" id="hero-label"></span>
+          <span id="hero-trend" class="pill on-dark" hidden></span>
+        </div>
+        <p class="hero-price"><span id="overall"></span><small id="overall-unit"></small></p>
+        <svg id="spark" viewBox="0 0 300 64" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="hero-foot"><span data-i18n="spark"></span><span id="hero-count"></span></div>
       </article>
-      <div id="markets"></div>
-      <section id="detail" class="card" hidden>
-        <div class="row"><h2 id="detail-title"></h2><button class="ghost" id="detail-close" data-i18n="close"></button></div>
+      <p id="summary" class="summary" aria-live="polite"></p>
+
+      <div class="section-head"><h2 data-i18n="byMarket"></h2><span class="muted small" data-i18n="cheapestFirst"></span></div>
+      <div id="markets" class="list"></div>
+
+      <section id="detail" class="card detail" hidden>
+        <div class="detail-head">
+          <div><h2 id="detail-title"></h2><p class="muted small" id="detail-sub"></p></div>
+          <button class="icon-btn" id="detail-close" aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button>
+        </div>
         <ul id="reports" class="reports"></ul>
       </section>
     </section>
 
     <!-- REPORT -->
     <section id="tab-report" class="tab" aria-labelledby="nav-report">
+      <div class="page-head"><h1 data-i18n="reportTitle"></h1><p class="muted" data-i18n="reportHelp"></p></div>
       <article class="card">
-        <h2 data-i18n="reportTitle"></h2>
-        <p class="muted" data-i18n="reportHelp"></p>
         <label for="free" class="sr" data-i18n="reportTitle"></label>
         <textarea id="free" rows="3" maxlength="500" data-i18n-ph="reportPh"></textarea>
-        <div class="row gap">
-          <button id="mic" class="secondary" type="button" data-i18n="speak"></button>
-          <button id="parse" class="primary" type="button" data-i18n="analyse"></button>
+        <div class="btn-row">
+          <button id="mic" class="btn secondary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-mic"/></svg><span id="mic-label" data-i18n="speak"></span></button>
+          <button id="parse" class="btn primary grow" type="button"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg><span data-i18n="analyse"></span></button>
         </div>
       </article>
 
       <form id="confirm-form" class="card" hidden>
         <h2 data-i18n="check"></h2>
-        <p id="ai-note" class="muted"></p>
-        <label><span data-i18n="product"></span><select id="f-product" required></select></label>
+        <p id="ai-note" class="muted small"></p>
+        <label class="field"><span data-i18n="product"></span><select id="f-product" required></select></label>
         <div id="new-food" hidden>
-          <label><span data-i18n="foodName"></span><input id="f-name" maxlength="40" autocomplete="off" data-i18n-ph="foodNamePh"></label>
-          <label><span data-i18n="unit"></span><select id="f-unit"></select></label>
+          <label class="field"><span data-i18n="foodName"></span><input id="f-name" maxlength="40" autocomplete="off" data-i18n-ph="foodNamePh"></label>
+          <label class="field"><span data-i18n="unit"></span><select id="f-unit"></select></label>
         </div>
-        <label><span data-i18n="market"></span><select id="f-market" required></select></label>
-        <label><span id="f-price-label" data-i18n="price"></span><input id="f-price" type="number" inputmode="numeric" min="25" max="999999" required></label>
-        <label><span data-i18n="lud16"></span><input id="f-lud16" type="email" autocomplete="off" placeholder="nom@getalby.com"></label>
-        <p class="muted small" data-i18n="publicNote"></p>
-        <button class="primary wide" type="submit" data-i18n="signPublish"></button>
+        <label class="field"><span data-i18n="market"></span><select id="f-market" required></select></label>
+        <label class="field"><span data-i18n="price"></span>
+          <div class="money-input"><input id="f-price" type="number" inputmode="numeric" min="5" max="999999" required><span>XOF</span></div></label>
+        <label class="field"><span data-i18n="lud16"></span><input id="f-lud16" type="email" autocomplete="off" placeholder="nom@getalby.com"></label>
+        <p class="note"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg><span data-i18n="publicNote"></span></p>
+        <button class="btn primary wide" type="submit"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="signPublish"></span></button>
       </form>
 
       <article id="deposit" class="card" hidden>
-        <h2 data-i18n="depositTitle"></h2>
-        <p data-i18n="depositHelp"></p>
+        <h2><svg class="icon accent" aria-hidden="true"><use href="#i-zap"/></svg> <span data-i18n="depositTitle"></span></h2>
+        <p class="muted" data-i18n="depositHelp"></p>
         <code id="deposit-invoice" class="invoice"></code>
-        <div class="row gap">
-          <a id="deposit-open" class="button secondary" data-i18n="openWallet"></a>
-          <button id="deposit-copy" class="secondary" type="button" data-i18n="copy"></button>
-          <button id="deposit-done" class="primary" type="button" data-i18n="paid"></button>
+        <div class="btn-row">
+          <a id="deposit-open" class="btn secondary"><svg class="icon" aria-hidden="true"><use href="#i-external"/></svg><span data-i18n="openWallet"></span></a>
+          <button id="deposit-copy" class="btn secondary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-copy"/></svg><span data-i18n="copy"></span></button>
+          <button id="deposit-done" class="btn primary grow" type="button"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="paid"></span></button>
         </div>
       </article>
-      <p id="report-status" class="status" role="status"></p>
+      <p id="report-status" class="status" role="status" hidden></p>
     </section>
 
     <!-- WALLET -->
     <section id="tab-wallet" class="tab" aria-labelledby="nav-wallet">
+      <article class="balance-card">
+        <div class="bc-top"><span data-i18n="balance"></span><span id="wallet-pill" class="pill on-dark"></span></div>
+        <p class="bc-amount"><span id="balance"></span><small>sats</small></p>
+        <p class="bc-sub" id="wallet-state"></p>
+        <svg class="bc-mark" aria-hidden="true"><use href="#i-zap"/></svg>
+      </article>
+
       <article class="card">
-        <h2 data-i18n="wallet"></h2>
-        <p id="wallet-state"></p>
-        <p class="big" id="balance"></p>
-        <label><span data-i18n="nwcLabel"></span>
-          <input id="nwc" type="password" autocomplete="off" placeholder="nostr+walletconnect://…"></label>
+        <h2><svg class="icon" aria-hidden="true"><use href="#i-link"/></svg> <span data-i18n="nwcLabel"></span></h2>
+        <input id="nwc" type="password" autocomplete="off" placeholder="nostr+walletconnect://…">
         <p class="muted small" data-i18n="nwcHelp"></p>
-        <div class="row gap">
-          <button id="nwc-save" class="primary" type="button" data-i18n="connect"></button>
-          <button id="nwc-forget" class="secondary" type="button" data-i18n="disconnect"></button>
+        <div class="btn-row">
+          <button id="nwc-save" class="btn primary grow" type="button" data-i18n="connect"></button>
+          <button id="nwc-forget" class="btn secondary" type="button" data-i18n="disconnect"></button>
         </div>
       </article>
+
       <article class="card">
-        <h2 data-i18n="identity"></h2>
+        <h2><svg class="icon" aria-hidden="true"><use href="#i-key"/></svg> <span data-i18n="identity"></span></h2>
         <p class="mono" id="npub"></p>
         <p class="muted small" data-i18n="identityHelp"></p>
-        <div class="row gap">
-          <button id="key-export" class="secondary" type="button" data-i18n="exportKey"></button>
-          <button id="key-import" class="secondary" type="button" data-i18n="importKey"></button>
+        <div class="btn-row">
+          <button id="key-export" class="btn secondary" type="button" data-i18n="exportKey"></button>
+          <button id="key-import" class="btn secondary" type="button" data-i18n="importKey"></button>
         </div>
       </article>
-      <article class="card">
-        <h2 data-i18n="network"></h2>
-        <dl id="stats" class="stats"></dl>
-      </article>
+
+      <div class="section-head"><h2 data-i18n="network"></h2></div>
+      <div id="stats" class="tiles"></div>
     </section>
   </main>
 
   <nav class="bottom" aria-label="Navigation">
-    <button id="nav-prices" data-tab="prices" class="active"><span aria-hidden="true">▤</span><span data-i18n="navPrices"></span></button>
-    <button id="nav-report" data-tab="report"><span aria-hidden="true">＋</span><span data-i18n="navReport"></span></button>
-    <button id="nav-wallet" data-tab="wallet"><span aria-hidden="true">⚡</span><span data-i18n="navWallet"></span></button>
+    <button id="nav-prices" data-tab="prices" class="active"><svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg><span data-i18n="navPrices"></span></button>
+    <button id="nav-report" data-tab="report"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg><span data-i18n="navReport"></span></button>
+    <button id="nav-wallet" data-tab="wallet"><svg class="icon" aria-hidden="true"><use href="#i-wallet"/></svg><span data-i18n="navWallet"></span></button>
   </nav>
   <div id="toast" class="toast" role="alert" hidden></div>
 

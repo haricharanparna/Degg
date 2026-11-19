@@ -160,7 +160,8 @@ Confirmations are NIP-25 reactions: `kind 7, content "+", ["e", <report id>]`.
 ## UX for low bandwidth & mid-range phones
 - No framework: ~25 KB of app code + the nostr-tools bundle; **service worker** caches the shell and last-seen prices for offline use.
 - Voice input (Web Speech API, `fr-SN`), large tap targets (≥44 px), system fonts, light/dark themes with accessible contrast.
-- French by default, English toggle; product names shown in **Wolof** (Ceeb, Soble, Diwlin…).
+- Language picker: **Français** (default), **English**, **Wolof (beta)**. Wolof covers navigation and main actions and falls back to French elsewhere; it needs review by a native speaker. Product names are shown in Wolof (Ceeb, Soble, Diwlin…).
+- Stroke SVG icons (no emojis), tabular numbers, light and dark themes.
 - Plain-language errors, and the AI result is always shown for **review before signing**.
 
 ## Constraints & honest limitations

@@ -1,2 +1,2 @@
 { "name": "Dëgg — le vrai prix du marché", "short_name": "Dëgg", "start_url": "/", "display": "standalone",
-  "background_color": "#f6f4ee", "theme_color": "#0f5132", "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }] }
+  "background_color": "#f6f4ee", "theme_color": "#0b3d2e", "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }] }

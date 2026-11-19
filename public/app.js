@@ -7,55 +7,73 @@ const store = {
   get: k => { try { return localStorage.getItem(k); } catch { return null; } },
   set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} },
 };
+const icon = (name, cls = '') => `<svg class="icon ${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
 
-// ---------- i18n ----------
+// ---------- i18n: French (default), English, Wolof (beta — falls back to French) ----------
 const T = {
-  fr: { tagline: 'Le vrai prix du marché', navPrices: 'Prix', navReport: 'Signaler', navWallet: 'Portefeuille',
-    spark: 'Prix médian, 14 derniers jours', close: 'Fermer', reports: 'signalements', updated: 'mis à jour',
-    confidence: 'confiance', demo: 'DÉMO', flagged: 'ÉCART', confirm: '✓ Confirmer', tip: '⚡ Récompenser', signed: 'Voir l’événement Nostr signé',
-    noData: 'Aucun prix signalé cette semaine. Soyez le premier !',
+  fr: { tagline: 'Le vrai prix du marché', language: 'Langue', navPrices: 'Prix', navReport: 'Signaler', navWallet: 'Portefeuille',
+    spark: '14 derniers jours', medianOf: 'Prix médian · {p}', reportsN: '{n} signalements', byMarket: 'Par marché', cheapestFirst: 'Le moins cher d’abord',
+    reports: 'signalements', report1: '1 signalement', updated: 'mis à jour', confidence: 'Confiance', demo: 'DÉMO', flagged: 'ÉCART',
+    confirm: 'Confirmer', tip: 'Récompenser', signed: 'Voir l’événement Nostr signé', noData: 'Aucun prix signalé cette semaine. Soyez le premier !',
     reportTitle: 'Signaler un prix', reportHelp: 'Écrivez ou dites ce que vous avez vu, en français ou en wolof. Ex : « sac de riz 50 kg à 22 500 à Sandaga »',
-    reportPh: 'Ex : soble 600 le kilo à Tilène', speak: '🎤 Parler', listening: '● J’écoute…', analyse: 'Analyser', check: 'Vérifiez avant de signer',
-    product: 'Produit', market: 'Marché', price: 'Prix (XOF par unité)', lud16: 'Votre adresse Lightning (facultatif, pour recevoir des récompenses)',
+    reportPh: 'Ex : soble 600 le kilo à Tilène', speak: 'Parler', listening: 'J’écoute…', analyse: 'Analyser', check: 'Vérifiez avant de signer',
+    product: 'Produit', market: 'Marché', price: 'Prix par unité', lud16: 'Adresse Lightning (facultatif, pour recevoir des récompenses)',
     publicNote: 'Votre signalement est public et signé avec votre clé Nostr. N’ajoutez pas votre nom ni votre numéro.',
     signPublish: 'Signer et publier', depositTitle: 'Petit dépôt anti-spam', depositHelp: 'Payez cette facture Lightning pour publier. Elle protège Dëgg contre les faux prix.',
-    openWallet: 'Ouvrir le portefeuille', copy: 'Copier', paid: 'J’ai payé', published: 'Publié et signé ✓', flagWarn: 'Publié, mais très différent des autres prix : ',
-    wallet: 'Portefeuille Lightning', nwcLabel: 'Connexion Nostr Wallet Connect', connect: 'Connecter', disconnect: 'Déconnecter',
-    nwcHelp: 'Collez le lien NWC de votre portefeuille (Alby, Mutiny, Phoenixd…). Il reste uniquement sur ce téléphone.',
-    demoWallet: 'Portefeuille DÉMO (faux sats, pour tester)', connected: 'Connecté via NWC', identity: 'Votre identité Nostr',
+    openWallet: 'Ouvrir', copy: 'Copier', copied: 'Copié', paid: 'J’ai payé', published: 'Publié et signé', flagWarn: 'Publié, mais très différent des autres prix : ',
+    balance: 'Solde', nwcLabel: 'Connecter un portefeuille', connect: 'Connecter', disconnect: 'Déconnecter',
+    nwcHelp: 'Collez le lien Nostr Wallet Connect de votre portefeuille (Alby, Phoenixd…). Il reste uniquement sur ce téléphone.',
+    demoWallet: 'Portefeuille de démonstration — faux sats pour tester', demoPill: 'DÉMO', connected: 'Connecté via NWC', livePill: 'CONNECTÉ', identity: 'Votre identité Nostr',
     identityHelp: 'Créée sur ce téléphone. Sauvegardez votre clé secrète : sans elle, vos signalements ne peuvent plus être liés à vous.',
     exportKey: 'Afficher la clé secrète', importKey: 'Importer une clé', network: 'Le réseau Dëgg',
-    st_reports: 'Signalements', st_real: 'dont réels (non démo)', st_contrib: 'Contributeurs', st_markets: 'Marchés couverts', st_conf: 'Confirmations', st_sats: 'Sats envoyés aux contributeurs',
-    tipAsk: 'Combien de sats envoyer ?', tipped: 'Merci ! Récompense envoyée ⚡', confirmed: 'Merci, confirmation enregistrée', noLud: 'Ce contributeur n’a pas d’adresse Lightning.',
-    search: 'Chercher', searchLabel: 'Chercher un aliment', searchPh: 'N’importe quel aliment : riz, mangue, gombo…', noneYet: '{q} : pas encore de prix', beFirst: 'Signaler le prix : {q}', emptyWhy: 'Les prix de Dëgg viennent des gens au marché. Personne n’a encore signalé celui-ci — soyez le premier, ça prend 20 secondes.', emptyBack: 'Voir les autres aliments', estLabel: 'ESTIMATION IA · NON VÉRIFIÉE', estLoading: 'Estimation en cours…', estWhy: 'Ce n’est pas un prix signalé : l’IA l’a estimé. Signalez le vrai prix pour aider tout le monde.', otherFood: '➕ Autre aliment…', foodName: 'Nom de l’aliment', foodNamePh: 'Ex : Mangue, Gombo, Bissap', unit: 'Vendu par', u_kg: 'kilo', u_L: 'litre', u_piece: 'pièce', u_bunch: 'botte / tas', u_sack: 'sac', needName: 'Indiquez le nom de l’aliment (2 à 40 lettres).',
+    st_reports: 'Signalements', st_real: 'Signalements réels', st_contrib: 'Contributeurs', st_markets: 'Marchés', st_conf: 'Confirmations', st_sats: 'Sats envoyés',
+    tipAsk: 'Combien de sats envoyer ?', tipped: 'Merci ! Récompense envoyée', confirmed: 'Merci, confirmation enregistrée', noLud: 'Ce contributeur n’a pas d’adresse Lightning.',
+    search: 'Chercher', searchLabel: 'Chercher un aliment', searchPh: 'Riz, mangue, steak…',
+    noSpecific: 'Pas encore de prix précis signalé', estLabel: 'Prix estimé · IA', estWhy: 'Il n’existe pas de prix précis pour cet aliment sur Dëgg. Ceci est une estimation de l’IA, pas un prix vérifié du marché.',
+    emptyWhy: 'Les prix de Dëgg viennent des gens au marché. Personne n’a encore signalé celui-ci — soyez le premier, ça prend 20 secondes.',
+    beFirst: 'Signaler le vrai prix', emptyBack: 'Retour aux prix',
+    otherFood: 'Autre aliment…', foodName: 'Nom de l’aliment', foodNamePh: 'Ex : Mangue, Gombo, Bissap', unit: 'Vendu par',
+    u_kg: 'kilo', u_L: 'litre', u_piece: 'pièce', u_bunch: 'botte', u_sack: 'sac', per: 'par {u}', needName: 'Indiquez le nom de l’aliment (2 à 40 lettres).',
     needInfo: 'Il manque : ', ago: 'il y a', min: 'min', h: 'h', d: 'j', noSpeech: 'La dictée vocale n’est pas disponible sur ce navigateur.',
-    err: 'Erreur : ', keyWarn: 'Ne partagez jamais cette clé :', pasteKey: 'Collez votre clé nsec…' },
-  en: { tagline: 'The true market price', navPrices: 'Prices', navReport: 'Report', navWallet: 'Wallet',
-    spark: 'Median price, last 14 days', close: 'Close', reports: 'reports', updated: 'updated',
-    confidence: 'confidence', demo: 'DEMO', flagged: 'OUTLIER', confirm: '✓ Confirm', tip: '⚡ Reward', signed: 'View signed Nostr event',
-    noData: 'No prices reported this week. Be the first!',
+    err: 'Erreur : ', keyWarn: 'Ne partagez jamais cette clé :', pasteKey: 'Collez votre clé nsec…', loading: 'Chargement…', viaAI: 'IA', viaRules: 'règles' },
+  en: { tagline: 'The true market price', language: 'Language', navPrices: 'Prices', navReport: 'Report', navWallet: 'Wallet',
+    spark: 'Last 14 days', medianOf: 'Median price · {p}', reportsN: '{n} reports', byMarket: 'By market', cheapestFirst: 'Cheapest first',
+    reports: 'reports', report1: '1 report', updated: 'updated', confidence: 'Confidence', demo: 'DEMO', flagged: 'OUTLIER',
+    confirm: 'Confirm', tip: 'Reward', signed: 'View signed Nostr event', noData: 'No prices reported this week. Be the first!',
     reportTitle: 'Report a price', reportHelp: 'Type or say what you saw, in French, Wolof or English. E.g. "50 kg rice sack 22,500 at Sandaga"',
-    reportPh: 'E.g. onions 600 per kilo at Tilène', speak: '🎤 Speak', listening: '● Listening…', analyse: 'Analyse', check: 'Check before signing',
-    product: 'Product', market: 'Market', price: 'Price (XOF per unit)', lud16: 'Your Lightning address (optional, to receive rewards)',
+    reportPh: 'E.g. onions 600 per kilo at Tilène', speak: 'Speak', listening: 'Listening…', analyse: 'Analyse', check: 'Check before signing',
+    product: 'Product', market: 'Market', price: 'Price per unit', lud16: 'Lightning address (optional, to receive rewards)',
     publicNote: 'Your report is public and signed with your Nostr key. Do not add your name or phone number.',
     signPublish: 'Sign and publish', depositTitle: 'Small anti-spam deposit', depositHelp: 'Pay this Lightning invoice to publish. It protects Dëgg from fake prices.',
-    openWallet: 'Open wallet', copy: 'Copy', paid: 'I paid', published: 'Published and signed ✓', flagWarn: 'Published, but very different from other prices: ',
-    wallet: 'Lightning wallet', nwcLabel: 'Nostr Wallet Connect link', connect: 'Connect', disconnect: 'Disconnect',
-    nwcHelp: 'Paste your wallet’s NWC link (Alby, Mutiny, Phoenixd…). It stays on this phone only.',
-    demoWallet: 'DEMO wallet (fake sats, for testing)', connected: 'Connected via NWC', identity: 'Your Nostr identity',
+    openWallet: 'Open', copy: 'Copy', copied: 'Copied', paid: 'I paid', published: 'Published and signed', flagWarn: 'Published, but very different from other prices: ',
+    balance: 'Balance', nwcLabel: 'Connect a wallet', connect: 'Connect', disconnect: 'Disconnect',
+    nwcHelp: 'Paste your wallet’s Nostr Wallet Connect link (Alby, Phoenixd…). It stays on this phone only.',
+    demoWallet: 'Demo wallet — fake sats for testing', demoPill: 'DEMO', connected: 'Connected via NWC', livePill: 'CONNECTED', identity: 'Your Nostr identity',
     identityHelp: 'Created on this phone. Back up your secret key: without it your reports can no longer be linked to you.',
     exportKey: 'Show secret key', importKey: 'Import a key', network: 'The Dëgg network',
-    st_reports: 'Reports', st_real: 'of which real (not demo)', st_contrib: 'Contributors', st_markets: 'Markets covered', st_conf: 'Confirmations', st_sats: 'Sats sent to contributors',
-    tipAsk: 'How many sats to send?', tipped: 'Thank you! Reward sent ⚡', confirmed: 'Thanks, confirmation recorded', noLud: 'This contributor has no Lightning address.',
-    search: 'Search', searchLabel: 'Search for a food', searchPh: 'Any food: rice, mango, okra…', noneYet: '{q}: no prices yet', beFirst: 'Report the price of {q}', emptyWhy: 'Dëgg prices come from people at the market. Nobody has reported this one yet — be the first, it takes 20 seconds.', emptyBack: 'See other foods', estLabel: 'AI ESTIMATE · NOT VERIFIED', estLoading: 'Estimating…', estWhy: 'This is not a reported price: AI estimated it. Report the real price to help everyone.', otherFood: '➕ Other food…', foodName: 'Food name', foodNamePh: 'E.g. Mango, Okra, Hibiscus', unit: 'Sold by', u_kg: 'kilo', u_L: 'litre', u_piece: 'piece', u_bunch: 'bunch', u_sack: 'sack', needName: 'Enter the food name (2 to 40 letters).',
+    st_reports: 'Reports', st_real: 'Real reports', st_contrib: 'Contributors', st_markets: 'Markets', st_conf: 'Confirmations', st_sats: 'Sats sent',
+    tipAsk: 'How many sats to send?', tipped: 'Thank you! Reward sent', confirmed: 'Thanks, confirmation recorded', noLud: 'This contributor has no Lightning address.',
+    search: 'Search', searchLabel: 'Search for a food', searchPh: 'Rice, mango, steak…',
+    noSpecific: 'No specific price reported yet', estLabel: 'Estimated price · AI', estWhy: 'There isn’t a specific price for this food on Dëgg yet. This is an AI estimate, not a verified market price.',
+    emptyWhy: 'Dëgg prices come from people at the market. Nobody has reported this one yet — be the first, it takes 20 seconds.',
+    beFirst: 'Report the real price', emptyBack: 'Back to prices',
+    otherFood: 'Other food…', foodName: 'Food name', foodNamePh: 'E.g. Mango, Okra, Hibiscus', unit: 'Sold by',
+    u_kg: 'kilo', u_L: 'litre', u_piece: 'piece', u_bunch: 'bunch', u_sack: 'sack', per: 'per {u}', needName: 'Enter the food name (2 to 40 letters).',
     needInfo: 'Missing: ', ago: '', min: 'min ago', h: 'h ago', d: 'd ago', noSpeech: 'Voice input is not available in this browser.',
-    err: 'Error: ', keyWarn: 'Never share this key:', pasteKey: 'Paste your nsec key…' },
+    err: 'Error: ', keyWarn: 'Never share this key:', pasteKey: 'Paste your nsec key…', loading: 'Loading…', viaAI: 'AI', viaRules: 'rules' },
+  // Wolof (beta): core navigation and actions. Anything missing falls back to French.
+  wo: { tagline: 'Njëg gu dëgg ci marse bi', language: 'Làkk', navPrices: 'Njëg', navReport: 'Yégle', navWallet: 'Kalpe',
+    byMarket: 'Ci marse yi', search: 'Seet', searchLabel: 'Seet lekk', searchPh: 'Ceeb, mango, yàpp…',
+    reportTitle: 'Yégle ab njëg', speak: 'Wax', listening: 'Maa ngi déglu…', analyse: 'Xool', product: 'Lekk', market: 'Marse', price: 'Njëg',
+    signPublish: 'Xaatim te yégle', confirm: 'Dëggal', tip: 'Jox', balance: 'Xaalis bi', connect: 'Lëkkale', disconnect: 'Dagg',
+    beFirst: 'Yégle njëg gu dëgg gi', emptyBack: 'Dellu ci njëg yi', copy: 'Duppi', paid: 'Fey naa', u_kg: 'kilo', u_piece: 'benn', u_sack: 'saaku' },
 };
 let lang = store.get('lang') || (navigator.language?.startsWith('en') ? 'en' : 'fr');
-const t = k => T[lang][k] ?? k;
+const t = (k, vars) => { let s = T[lang]?.[k] ?? T.fr[k] ?? k; for (const [a, b] of Object.entries(vars || {})) s = s.replace(`{${a}}`, b); return s; };
+const apiLang = () => (lang === 'en' ? 'en' : 'fr');
 function applyI18n() {
   document.documentElement.lang = lang;
-  $('lang').textContent = lang === 'fr' ? 'EN' : 'FR';
+  $('lang').value = lang;
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
 }
@@ -66,7 +84,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 function ago(ts) {
   const s = Date.now() / 1000 - ts;
   const [v, u] = s < 3600 ? [Math.max(1, Math.round(s / 60)), 'min'] : s < 86400 ? [Math.round(s / 3600), 'h'] : [Math.round(s / 86400), 'd'];
-  return lang === 'fr' ? `${t('ago')} ${v} ${t(u)}` : `${v} ${t(u)}`;
+  return lang === 'en' ? `${v} ${t(u)}` : `${t('ago')} ${v} ${t(u)}`;
 }
 function toast(msg) { const el = $('toast'); el.textContent = msg; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 4000); }
 async function api(path, body) {
@@ -75,7 +93,11 @@ async function api(path, body) {
   if (!res.ok) throw Object.assign(new Error(data.error || res.status), { status: res.status });
   return data;
 }
-const pName = p => lang === 'en' ? p.en : `${p.fr} · ${p.wo}`;
+const pShort = p => lang === 'en' ? p.en : lang === 'wo' ? p.wo : p.fr;
+const pName = p => (p.custom || lang === 'en' ? pShort(p) : `${p.fr} · ${p.wo}`);
+const unitName = u => t('u_' + u);
+const trendPill = (v, cls = '') => v == null ? '' : v > 0 ? `<span class="pill up ${cls}">${icon('up')}${v}%</span>`
+  : v < 0 ? `<span class="pill down ${cls}">${icon('down')}${-v}%</span>` : `<span class="pill flat ${cls}">${icon('flat')}0%</span>`;
 
 // ---------- identity (NIP-07 extension if present, else a key generated on this device) ----------
 function localKey() {
@@ -102,62 +124,78 @@ let cfg, product = store.get('product') || 'rice', openMarket = null;
 const extra = new Map(JSON.parse(store.get('extra_products') || '[]'));   // community foods seen on this device
 const prod = id => cfg.products.find(p => p.id === id) || extra.get(id);
 function remember(p) { if (p?.custom) { extra.set(p.id, p); store.set('extra_products', JSON.stringify([...extra].slice(-30))); } }
-const slugify = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+const slugify = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
 
 // ---------- prices tab ----------
 function renderChips() {
   const cur = prod(product), list = cur?.custom ? [cur, ...cfg.products] : cfg.products;
-  $('chips').innerHTML = list.map(p => `<button class="chip" role="tab" data-p="${p.id}" aria-selected="${p.id === product}">${esc(lang === 'en' ? p.en : p.wo)}</button>`).join('');
+  $('chips').innerHTML = list.map(p => `<button class="chip" role="tab" data-p="${esc(p.id)}" aria-selected="${p.id === product}">${esc(pShort(p))}</button>`).join('');
 }
 function spark(history) {
   const pts = history.map((v, i) => [i, v]).filter(([, v]) => v != null);
   if (pts.length < 2) { $('spark').innerHTML = ''; return; }
   const vs = pts.map(p => p[1]), lo = Math.min(...vs), hi = Math.max(...vs), span = hi - lo || 1;
-  const d = pts.map(([i, v], k) => `${k ? 'L' : 'M'}${(i / 13 * 136 + 2).toFixed(1)},${(34 - (v - lo) / span * 30).toFixed(1)}`).join(' ');
-  $('spark').innerHTML = `<path d="${d}"/>`;
+  const xy = pts.map(([i, v]) => [(i / 13) * 296 + 2, 58 - ((v - lo) / span) * 50]);
+  const line = xy.map(([x, y], k) => `${k ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+  const area = `${line} L${xy.at(-1)[0].toFixed(1)},64 L${xy[0][0].toFixed(1)},64 Z`;
+  $('spark').innerHTML = `<defs><linearGradient id="sparkfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ff0c4" stop-opacity=".35"/><stop offset="1" stop-color="#8ff0c4" stop-opacity="0"/></linearGradient></defs>
+    <path class="area" d="${area}"/><path class="line" d="${line}"/>`;
 }
 async function loadPrices() {
   const p = prod(product);
-  $('markets').innerHTML = '<p class="empty">…</p>';
+  $('markets').innerHTML = `<div class="loading">${t('loading')}</div>`;
+  $('hero-label').textContent = t('medianOf', { p: pShort(p) });
   try {
-    const data = await api(`/api/prices?product=${product}&lang=${lang}`);
+    const data = await api(`/api/prices?product=${encodeURIComponent(product)}&lang=${apiLang()}`);
+    const total = data.markets.reduce((n, m) => n + m.reports, 0);
     $('summary').textContent = data.summary;
-    $('overall').textContent = data.overall ? `${fmt(data.overall)} XOF/${p.unit}` : '–';
+    $('overall').textContent = data.overall ? fmt(data.overall) : '–';
+    $('overall-unit').textContent = `XOF / ${unitName(p.unit)}`;
+    $('hero-count').textContent = total === 1 ? t('report1') : t('reportsN', { n: total });
+    const recent = data.history.filter(v => v != null);
+    const tr = recent.length >= 2 ? Math.round(((recent.at(-1) - recent[0]) / recent[0]) * 100) : null;
+    $('hero-trend').hidden = tr == null;
+    $('hero-trend').innerHTML = tr == null ? '' : `${icon(tr > 0 ? 'up' : tr < 0 ? 'down' : 'flat')}${tr > 0 ? '+' : ''}${tr}%`;
     spark(data.history);
     $('markets').innerHTML = data.markets.length ? data.markets.map(m => `
-      <button class="card market" data-m="${m.market}" aria-label="${esc(m.name)}">
-        <span class="name">${esc(m.name)}${m.demo ? `<span class="badge">${t('demo')}</span>` : ''}</span>
-        <span class="price">${fmt(m.median)}</span>
-        <span class="meta">${m.reports} ${t('reports')} · ${t('updated')} ${ago(m.last)}</span>
-        <span class="meta" style="text-align:right">${m.min !== m.max ? `${fmt(m.min)}–${fmt(m.max)}` : ''}
-          ${m.trend == null ? '' : m.trend > 0 ? `<b class="up">▲ ${m.trend}%</b>` : m.trend < 0 ? `<b class="down">▼ ${-m.trend}%</b>` : '＝'}</span>
-        <span class="conf" title="${t('confidence')} ${m.confidence}%"><i style="width:${m.confidence}%"></i></span>
-        <span class="meta">${t('confidence')} ${m.confidence}%</span>
-      </button>`).join('') : `<p class="empty">${t('noData')}</p>`;
-  } catch (e) { $('markets').innerHTML = `<p class="empty">${t('err')}${esc(e.message)}</p>`; }
+      <button class="row-item" data-m="${m.market}" aria-label="${esc(m.name)}">
+        <span class="avatar">${icon('store')}</span>
+        <span class="row-name">${esc(m.name)}${m.demo ? `<span class="badge">${t('demo')}</span>` : ''}</span>
+        <span class="row-right"><span class="row-price">${fmt(m.median)}</span>${trendPill(m.trend)}</span>
+        <span class="row-meta">${m.reports === 1 ? t('report1') : `${m.reports} ${t('reports')}`} · ${ago(m.last)}${m.min !== m.max ? ` · ${fmt(m.min)}–${fmt(m.max)}` : ''}</span>
+        <span class="conf"><span class="bar"><i style="width:${m.confidence}%"></i></span>${t('confidence')} ${m.confidence}%</span>
+      </button>`).join('') : `<div class="empty-row">${t('noData')}</div>`;
+  } catch (e) { $('markets').innerHTML = `<div class="empty-row">${t('err')}${esc(e.message)}</div>`; }
 }
 async function openDetail(market) {
   openMarket = market;
   const m = cfg.markets.find(x => x.id === market), p = prod(product);
-  $('detail-title').textContent = `${pName(p)} — ${m.name}`;
+  $('detail-title').textContent = m.name;
+  $('detail-sub').textContent = `${pName(p)} · XOF / ${unitName(p.unit)}`;
   $('detail').hidden = false;
-  const { reports } = await api(`/api/reports?product=${product}&market=${market}`);
+  $('reports').innerHTML = `<li class="loading">${t('loading')}</li>`;
+  const { reports } = await api(`/api/reports?product=${encodeURIComponent(product)}&market=${market}`);
   const me = await myPubkey();
-  $('reports').innerHTML = reports.map(r => `
-    <li>
-      <div class="row"><strong>${fmt(r.price)} XOF/${p.unit}</strong><span class="muted small">${ago(r.created_at)}</span></div>
-      <div class="small muted mono">${esc(NT.nip19.npubEncode(r.pubkey).slice(0, 20))}…
-        ${r.demo ? `<span class="badge">${t('demo')}</span>` : ''}${r.flag ? `<span class="badge flag" title="${esc(r.flag)}">${t('flagged')}</span>` : ''}</div>
-      ${r.note ? `<div class="small">“${esc(r.note)}”</div>` : ''}
-      ${r.flag ? `<div class="small muted">${esc(r.flag)}</div>` : ''}
-      <div class="small muted">✓ ${r.confirms} · ⚡ ${fmt(r.tipped)} sats</div>
-      <div class="actions">
-        ${r.pubkey !== me ? `<button class="secondary small-btn" data-confirm="${r.id}">${t('confirm')}</button>` : ''}
-        <button class="secondary small-btn" data-tip="${r.id}" data-lud="${r.lud16 ? 1 : 0}">${t('tip')}</button>
+  $('reports').innerHTML = reports.map(r => {
+    const npub = NT.nip19.npubEncode(r.pubkey);
+    return `<li>
+      <div class="rep-top">
+        <span class="avatar alt">${esc(npub.slice(5, 7).toUpperCase())}</span>
+        <div><div class="mono-short small">${esc(npub.slice(0, 14))}…${r.demo ? `<span class="badge">${t('demo')}</span>` : ''}${r.flag ? `<span class="badge flag" title="${esc(r.flag)}">${t('flagged')}</span>` : ''}</div>
+          <div class="muted small">${ago(r.created_at)}</div></div>
+        <span class="row-price">${fmt(r.price)}</span>
       </div>
-      <details><summary class="small">${t('signed')}</summary><pre>${esc(JSON.stringify(r.event, null, 1))}</pre></details>
-    </li>`).join('') || `<li class="empty">${t('noData')}</li>`;
-  $('detail').scrollIntoView({ behavior: 'smooth' });
+      ${r.note ? `<p class="rep-note">“${esc(r.note)}”</p>` : ''}
+      ${r.flag ? `<p class="rep-note muted small">${esc(r.flag)}</p>` : ''}
+      <div class="rep-stats"><span>${icon('check')}${r.confirms}</span><span>${icon('zap')}${fmt(r.tipped)} sats</span></div>
+      <div class="btn-row">
+        ${r.pubkey !== me ? `<button class="btn secondary small" data-confirm="${r.id}">${icon('check')}${t('confirm')}</button>` : ''}
+        <button class="btn secondary small" data-tip="${r.id}" data-lud="${r.lud16 ? 1 : 0}">${icon('zap', 'accent')}${t('tip')}</button>
+      </div>
+      <details><summary>${t('signed')}</summary><pre>${esc(JSON.stringify(r.event, null, 1))}</pre></details>
+    </li>`;
+  }).join('') || `<li class="empty-row">${t('noData')}</li>`;
+  $('detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 async function confirmReport(id) {
   try {
@@ -187,8 +225,8 @@ async function tipReport(id, hasLud) {
 
 // ---------- report tab ----------
 function fillSelects() {
-  $('f-product').innerHTML = cfg.products.map(p => `<option value="${p.id}">${esc(pName(p))} (${p.unit})</option>`).join('') + `<option value="__new">${t('otherFood')}</option>`;
-  $('f-unit').innerHTML = cfg.units.map(u => `<option value="${u}">${t('u_' + u)}</option>`).join('');
+  $('f-product').innerHTML = cfg.products.map(p => `<option value="${p.id}">${esc(pName(p))} (${unitName(p.unit)})</option>`).join('') + `<option value="__new">${t('otherFood')}</option>`;
+  $('f-unit').innerHTML = cfg.units.map(u => `<option value="${u}">${unitName(u)}</option>`).join('');
   $('new-food').hidden = true;
   $('f-market').innerHTML = cfg.markets.map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join('');
 }
@@ -204,9 +242,9 @@ async function parseFree() {
     if (r.market) $('f-market').value = r.market;
     $('f-price').value = r.price || '';
     $('f-lud16').value = store.get('lud16') || '';
-    const miss = r.missing?.length ? `${t('needInfo')}${r.missing.map(t).join(', ')}. ` : '';
-    $('ai-note').textContent = `${miss}${r.explanation || ''} (${r.source === 'ai' ? 'AI' : 'rules'})`;
-    $('confirm-form').hidden = false; $('deposit').hidden = true;
+    const miss = r.missing?.length ? `${t('needInfo')}${r.missing.map(k => t(k)).join(', ')}. ` : '';
+    $('ai-note').textContent = `${miss}${r.explanation || ''} (${r.source === 'ai' ? t('viaAI') : t('viaRules')})`;
+    $('confirm-form').hidden = false; $('deposit').hidden = true; $('report-status').hidden = true;
     $('confirm-form').scrollIntoView({ behavior: 'smooth' });
   } catch (e) { toast(t('err') + e.message); }
   finally { $('parse').disabled = false; }
@@ -245,7 +283,10 @@ async function submitReport(ev) {
 async function publish(payment_hash) {
   try {
     const r = await api('/api/reports', { event: pendingEvent, payment_hash });
-    $('report-status').textContent = r.flag ? t('flagWarn') + r.flag : t('published');
+    const st = $('report-status');
+    st.className = r.flag ? 'status warn' : 'status';
+    st.innerHTML = r.flag ? `${icon('alert')}<span>${esc(t('flagWarn') + r.flag)}</span>` : `${icon('check')}<span>${t('published')}</span>`;
+    st.hidden = false;
     $('confirm-form').hidden = true; $('deposit').hidden = true; $('free').value = '';
     product = pendingEvent.tags.find(x => x[0] === 'product')[1];
     const nm = pendingEvent.tags.find(x => x[0] === 'name')?.[1];
@@ -261,9 +302,9 @@ function setupMic() {
     const rec = new SR();
     rec.lang = lang === 'en' ? 'en-US' : 'fr-SN';
     rec.interimResults = false;
-    $('mic').classList.add('recording'); $('mic').textContent = t('listening');
+    $('mic').classList.add('recording'); $('mic-label').textContent = t('listening');
     rec.onresult = e => { $('free').value = [$('free').value, e.results[0][0].transcript].filter(Boolean).join(' '); };
-    rec.onend = () => { $('mic').classList.remove('recording'); $('mic').textContent = t('speak'); };
+    rec.onend = () => { $('mic').classList.remove('recording'); $('mic-label').textContent = t('speak'); };
     rec.onerror = () => rec.onend();
     rec.start();
   };
@@ -273,49 +314,54 @@ function setupMic() {
 async function renderWallet() {
   $('npub').textContent = NT.nip19.npubEncode(await myPubkey());
   if (nwc) {
-    $('wallet-state').textContent = `${t('connected')} (${new URL(nwc.relayUrl).host})`;
+    $('wallet-state').textContent = `${t('connected')} · ${new URL(nwc.relayUrl).host}`;
+    $('wallet-pill').textContent = t('livePill');
     $('balance').textContent = '…';
-    nwc.getBalance().then(b => { $('balance').textContent = `${fmt(Math.floor(b.balance / 1000))} sats`; })
-      .catch(e => { $('balance').textContent = t('err') + e.message; });
+    nwc.getBalance().then(b => { $('balance').textContent = fmt(Math.floor(b.balance / 1000)); })
+      .catch(e => { $('balance').textContent = '–'; toast(t('err') + e.message); });
   } else {
     $('wallet-state').textContent = t('demoWallet');
-    $('balance').textContent = `${fmt(demoBal())} sats`;
+    $('wallet-pill').textContent = t('demoPill');
+    $('balance').textContent = fmt(demoBal());
   }
   const s = await api('/api/stats');
-  $('stats').innerHTML = [['st_reports', s.reports], ['st_real', s.real_reports], ['st_contrib', s.contributors], ['st_markets', s.markets],
-    ['st_conf', s.confirmations], ['st_sats', s.sats_tipped]].map(([k, v]) => `<dt>${t(k)}</dt><dd>${fmt(v)}</dd>`).join('');
+  $('stats').innerHTML = [['file', 'st_reports', s.reports], ['shield', 'st_real', s.real_reports], ['users', 'st_contrib', s.contributors],
+    ['store', 'st_markets', s.markets], ['check', 'st_conf', s.confirmations], ['zap', 'st_sats', s.sats_tipped]]
+    .map(([i, k, v]) => `<div class="tile">${icon(i)}<b>${fmt(v)}</b><span>${t(k)}</span></div>`).join('');
 }
 
-// ---------- search: any food, built-in or added by the community ----------
-const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+// ---------- search: any food; unreported foods show an AI estimate, clearly labelled ----------
+const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 function showEmpty(q) {
   $('tab-prices').classList.toggle('no-results', Boolean(q));
   $('empty').hidden = !q;
   if (!q) return;
-  const name = q.charAt(0).toUpperCase() + q.slice(1);
-  $('empty-title').textContent = t('noneYet').replace('{q}', name);
-  $('empty-report').textContent = t('beFirst').replace('{q}', name);
-  $('empty-report').dataset.newfood = q;
-  $('estimate').hidden = true;
-  if (cfg.estimates) loadEstimate(q);
+  $('empty-title').textContent = cap(q);
+  $('empty-report-label').textContent = t('beFirst');
+  $('empty-report').dataset.newfood = q; delete $('empty-report').dataset.unit;
+  $('estimate').hidden = true; $('no-estimate').hidden = true;
+  if (cfg.estimates) loadEstimate(q); else $('no-estimate').hidden = false;
 }
 async function loadEstimate(q) {
-  $('estimate').hidden = false; $('est-range').textContent = t('estLoading'); $('est-note').textContent = '';
+  $('estimate').hidden = false;
+  $('est-range').innerHTML = '<span class="skeleton"></span>'; $('est-unit').textContent = ''; $('est-note').textContent = '';
   try {
     const e = await api(`/api/estimate?q=${encodeURIComponent(q)}`);
     if ($('empty-report').dataset.newfood !== q) return; // user moved on
-    if (!e.available) { $('estimate').hidden = true; return; }
-    $('empty-title').textContent = t('noneYet').replace('{q}', e.food);
-    $('est-range').textContent = `≈ ${fmt(e.low)}–${fmt(e.high)} XOF / ${t('u_' + e.unit)}`;
-    $('est-note').textContent = `${e.note} ${t('estWhy')}`;
+    if (!e.available) { $('estimate').hidden = true; $('no-estimate').hidden = false; return; }
+    $('empty-title').textContent = e.food;
+    $('est-range').textContent = `${fmt(e.low)} – ${fmt(e.high)} XOF`;
+    $('est-unit').textContent = t('per', { u: unitName(e.unit) });
+    $('est-note').textContent = e.note;
     $('empty-report').dataset.newfood = e.food; $('empty-report').dataset.unit = e.unit;
-  } catch { $('estimate').hidden = true; }
+  } catch { $('estimate').hidden = true; $('no-estimate').hidden = false; }
 }
 function selectProduct(id) {
   showEmpty(null);
   product = id; store.set('product', id); $('detail').hidden = true;
   renderChips(); loadPrices();
-  document.querySelector(`[data-p="${CSS.escape(id)}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  document.querySelector(`.chip[data-p="${CSS.escape(id)}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
 let searchSeq = 0;
 async function runSearch(auto = false) {
@@ -328,7 +374,7 @@ async function runSearch(auto = false) {
   hits.forEach(remember);
   if (hits.length) {
     msg.hidden = hits.length === 1;
-    msg.innerHTML = hits.map(p => `<button type="button" class="chip" data-p="${esc(p.id)}">${esc(pName(p))} · ${t('u_' + p.unit)}</button>`).join(' ');
+    msg.innerHTML = hits.map(p => `<button type="button" class="chip" data-p="${esc(p.id)}">${esc(pName(p))} · ${unitName(p.unit)}</button>`).join('');
     if (hits.length === 1 || !auto) selectProduct(hits[0].id);
     const market = cfg.markets.find(m => norm(q).includes(norm(m.name)));
     if (market && !auto) setTimeout(() => openDetail(market.id), 600);
@@ -338,9 +384,9 @@ async function runSearch(auto = false) {
   }
 }
 function reportNewFood(name, unit = 'kg') {
-  showTab('report'); fillSelects(); newFood(name.charAt(0).toUpperCase() + name.slice(1), unit);
+  showTab('report'); fillSelects(); newFood(cap(name), unit);
   $('f-lud16').value = store.get('lud16') || ''; $('ai-note').textContent = '';
-  $('confirm-form').hidden = false; $('deposit').hidden = true; $('f-price').focus();
+  $('confirm-form').hidden = false; $('deposit').hidden = true; $('report-status').hidden = true; $('f-price').focus();
 }
 
 // ---------- wiring ----------
@@ -361,13 +407,17 @@ document.addEventListener('click', e => {
 });
 $('empty-back').onclick = () => { $('q').value = ''; showEmpty(null); $('search-msg').hidden = true; };
 $('detail-close').onclick = () => { $('detail').hidden = true; };
-$('lang').onclick = () => { lang = lang === 'fr' ? 'en' : 'fr'; store.set('lang', lang); applyI18n(); renderChips(); fillSelects(); loadPrices(); };
+$('lang').onchange = () => {
+  lang = $('lang').value; store.set('lang', lang); applyI18n(); renderChips(); fillSelects(); loadPrices();
+  if (!$('empty').hidden) showEmpty($('empty-report').dataset.newfood);
+  if ($('tab-wallet').classList.contains('active')) renderWallet();
+};
 $('parse').onclick = parseFree;
 $('search').onsubmit = e => { e.preventDefault(); runSearch(); $('q').blur(); };
 $('q').oninput = () => { clearTimeout(runSearch.t); if ($('q').value.trim().length >= 3) runSearch.t = setTimeout(() => runSearch(true), 300); else { $('search-msg').hidden = true; showEmpty(null); } };
 $('f-product').onchange = () => { if ($('f-product').value === '__new') newFood(); else $('new-food').hidden = true; };
 $('confirm-form').onsubmit = submitReport;
-$('deposit-copy').onclick = () => navigator.clipboard?.writeText($('deposit-invoice').textContent).then(() => toast('✓'));
+$('deposit-copy').onclick = () => navigator.clipboard?.writeText($('deposit-invoice').textContent).then(() => toast(t('copied')));
 $('nwc-save').onclick = async () => {
   const uri = $('nwc').value.trim();
   try { const c = createNwc(NT, uri); await c.getBalance(); nwc = c; store.set('nwc', uri); $('nwc').value = ''; renderWallet(); }
@@ -386,6 +436,7 @@ $('key-import').onclick = () => {
 };
 
 (async function init() {
+  if (!T[lang]) lang = 'fr';
   applyI18n(); setupMic();
   cfg = await api('/api/config');
   if (!prod(product)) product = cfg.products[0].id;

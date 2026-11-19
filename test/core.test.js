@@ -111,3 +111,20 @@ test('Gemini free-tier key works as the AI provider', async () => {
     assert.deepEqual([e.available, e.food, e.low, e.high], [true, 'Fataya', 100, 250]);
   } finally { globalThis.fetch = realFetch; delete process.env.GEMINI_API_KEY; }
 });
+
+test('Gemini falls back to the next model when one is busy', async () => {
+  const { askAI } = await import('../lib/ai.js');
+  process.env.GEMINI_API_KEY = 'test';
+  const realFetch = globalThis.fetch; const tried = [];
+  globalThis.fetch = async (u) => {
+    if (u.includes('/models?')) return { ok: true, json: async () => ({ models: [] }) };
+    tried.push(u.match(/models\/([^:]+)/)[1]);
+    if (tried.length === 1) return { ok: false, status: 503, text: async () => '{"error":"busy"}' };
+    return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }) };
+  };
+  try {
+    assert.equal(await askAI('x', 'y'), 'ok');
+    assert.equal(tried.length, 2);
+    assert.notEqual(tried[0], tried[1]);
+  } finally { globalThis.fetch = realFetch; delete process.env.GEMINI_API_KEY; }
+});
