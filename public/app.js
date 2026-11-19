@@ -369,14 +369,15 @@ async function loadEstimate(q) {
   $('estimate').hidden = false;
   $('est-range').innerHTML = '<span class="skeleton"></span>'; $('est-unit').textContent = ''; $('est-note').textContent = '';
   try {
-    const e = await api(`/api/estimate?q=${encodeURIComponent(q)}`);
-    if ($('empty-report').dataset.newfood !== q) return; // user moved on
+    const e = await api(`/api/estimate?q=${encodeURIComponent(q)}&lang=${apiLang()}`);
+    if ($('empty-report').dataset.newfood !== q || $('empty').hidden) return; // user moved on
     if (!e.available) { $('estimate').hidden = true; $('no-estimate').hidden = false; return; }
     $('empty-title').textContent = e.food;
     $('est-range').textContent = `${fmt(e.low)} – ${fmt(e.high)} XOF`;
     $('est-unit').textContent = t('per', { u: unitName(e.unit) });
     $('est-note').textContent = e.note;
-    $('empty-report').dataset.newfood = e.food; $('empty-report').dataset.unit = e.unit;
+    $('empty-report').dataset.newfood = e.report_name || e.food; $('empty-report').dataset.unit = e.unit;
+    $('empty-report').dataset.query = q;
   } catch { $('estimate').hidden = true; $('no-estimate').hidden = false; }
 }
 function selectProduct(id) {
@@ -432,7 +433,7 @@ $('empty-back').onclick = () => { $('q').value = ''; showEmpty(null); $('search-
 $('detail-close').onclick = () => { $('detail').hidden = true; };
 $('lang').onchange = () => {
   lang = $('lang').value; store.set('lang', lang); applyI18n(); renderChips(); fillSelects(); loadPrices(); loadWatch();
-  if (!$('empty').hidden) showEmpty($('empty-report').dataset.newfood);
+  if (!$('empty').hidden) showEmpty($('empty-report').dataset.query || $('empty-report').dataset.newfood);
   if ($('tab-wallet').classList.contains('active')) renderWallet();
 };
 $('parse').onclick = parseFree;

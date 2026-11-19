@@ -66,7 +66,7 @@ const routes = {
 
   'GET /api/estimate': async (q, body, ctx) => {
     if (limited(`est:${ctx.bucket}`, 20, 60_000)) throw Object.assign(new Error('slow_down'), { status: 429 });
-    return estimatePrice(String(q.q || ''));
+    return estimatePrice(String(q.q || ''), q.lang === 'en' ? 'en' : 'fr');
   },
 
   'GET /api/reports': (q) => {

@@ -82,15 +82,17 @@ test('AI estimate is validated, cached, and off without an API key', async () =>
   process.env.ANTHROPIC_API_KEY = 'test';
   const realFetch = globalThis.fetch; let calls = 0;
   const reply = text => { calls++; return { ok: true, json: async () => ({ content: [{ text }] }) }; };
-  globalThis.fetch = async () => reply('{"food":"Pizza","unit":"piece","low":2500,"high":5000,"note":"Selon la taille."}');
+  globalThis.fetch = async () => reply('{"food_fr":"Pizza","food_en":"Pizza","unit":"piece","low":2500,"high":5000,"note_fr":"Selon la taille.","note_en":"Depends on size."}');
   try {
     const e = await estimatePrice('pizza');
     assert.deepEqual([e.available, e.food, e.unit, e.low, e.high], [true, 'Pizza', 'piece', 2500, 5000]);
-    await estimatePrice('Pizza'); // cached, no second call
+    const en = await estimatePrice('Pizza', 'en'); // cached, no second call, English text
     assert.equal(calls, 1);
-    globalThis.fetch = async () => reply('{"food":"Truc","unit":"box","low":9,"high":1}');
+    assert.equal(en.note, 'Depends on size.');
+    assert.equal(e.note, 'Selon la taille.');
+    globalThis.fetch = async () => reply('{"food_fr":"Truc","unit":"box","low":9,"high":1}');
     assert.equal((await estimatePrice('truc')).available, false);
-    globalThis.fetch = async () => reply('{"food":null}');
+    globalThis.fetch = async () => reply('{"food_fr":null}');
     assert.equal((await estimatePrice('voiture')).reason, 'not_a_food');
   } finally { globalThis.fetch = realFetch; delete process.env.ANTHROPIC_API_KEY; }
 });
@@ -104,9 +106,10 @@ test('Gemini free-tier key works as the AI provider', async () => {
     { name: 'models/gemini-9-flash', supportedGenerationMethods: ['generateContent'] },
     { name: 'models/gemini-8-flash', supportedGenerationMethods: ['generateContent'] },
     { name: 'models/gemini-9-flash-lite', supportedGenerationMethods: ['generateContent'] }] }) };
-    url = u; return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: '{"food":"Fataya","unit":"piece","low":100,"high":250,"note":"Beignet farci."}' }] } }] }) }; };
+    url = u; return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: '{"food_fr":"Fataya","food_en":"Fataya","unit":"piece","low":100,"high":250,"note_fr":"Beignet farci.","note_en":"Stuffed pastry."}' }] } }] }) }; };
   try {
-    const e = await estimatePrice('fataya');
+    const e = await estimatePrice('fataya', 'en');
+    assert.equal(e.note, 'Stuffed pastry.');
     assert.match(url, /generativelanguage\.googleapis\.com/);
     assert.deepEqual([e.available, e.food, e.low, e.high], [true, 'Fataya', 100, 250]);
   } finally { globalThis.fetch = realFetch; delete process.env.GEMINI_API_KEY; }
