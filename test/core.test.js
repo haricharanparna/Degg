@@ -99,7 +99,12 @@ test('Gemini free-tier key works as the AI provider', async () => {
   const { estimatePrice } = await import('../lib/estimate.js');
   process.env.GEMINI_API_KEY = 'test';
   const realFetch = globalThis.fetch; let url = '';
-  globalThis.fetch = async (u) => { url = u; return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: '{"food":"Fataya","unit":"piece","low":100,"high":250,"note":"Beignet farci."}' }] } }] }) }; };
+  globalThis.fetch = async (u) => { if (u.includes('/models?')) return { ok: true, json: async () => ({ models: [
+    { name: 'models/gemini-9-flash-image', supportedGenerationMethods: ['generateContent'] },
+    { name: 'models/gemini-9-flash', supportedGenerationMethods: ['generateContent'] },
+    { name: 'models/gemini-8-flash', supportedGenerationMethods: ['generateContent'] },
+    { name: 'models/gemini-9-flash-lite', supportedGenerationMethods: ['generateContent'] }] }) };
+    url = u; return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: '{"food":"Fataya","unit":"piece","low":100,"high":250,"note":"Beignet farci."}' }] } }] }) }; };
   try {
     const e = await estimatePrice('fataya');
     assert.match(url, /generativelanguage\.googleapis\.com/);
